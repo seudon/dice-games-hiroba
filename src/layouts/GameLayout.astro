@@ -1,0 +1,19 @@
+---
+// src/layouts/GameLayout.astro
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="card">
+    <div class="card-body">
+      <slot />
+    </div>
+  </div>
+</BaseLayout>

@@ -1,0 +1,67 @@
+---
+// src/layouts/BaseLayout.astro
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const {
+  title,
+  description = 'サイコロゲームのルール、記録表、ブラウザゲームを提供するサイト'
+} = Astro.props;
+
+const siteTitle = 'サイコロゲーム広場';
+const fullTitle = `${title} | ${siteTitle}`;
+---
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content={description}>
+  <title>{fullTitle}</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand" href="/">🎲 {siteTitle}</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/">ホーム</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/games">ゲーム一覧</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/about">このサイトについて</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container my-5">
+    <slot />
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-white text-center py-4 mt-5 border-top">
+    <div class="container">
+      <p class="fw-bold mb-1">サイコロゲーム広場</p>
+      <p class="text-dark mb-1">子供から高齢者まで楽しめるサイコロゲーム集</p>
+      <p class="text-dark">&copy; 2025 サイコロゲーム広場. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
