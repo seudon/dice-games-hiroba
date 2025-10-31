@@ -1,0 +1,110 @@
+---
+// src/pages/games/[slug].astro
+import { getCollection } from 'astro:content';
+import GameLayout from '../../layouts/GameLayout.astro';
+import ZoromeGame from '../../components/games/ZoromeGame.vue';
+import FiftyGame from '../../components/games/FiftyGame.vue';
+import QuickMathGame from '../../components/games/QuickMathGame.vue';
+
+export async function getStaticPaths() {
+  const games = await getCollection('games');
+  return games.map(game => ({
+    params: { slug: game.slug },
+    props: { game },
+  }));
+}
+
+const { game } = Astro.props;
+const { Content } = await game.render();
+
+// 難易度に応じたバッジカラー
+const difficultyColors: Record<string, string> = {
+  '初級': 'bg-success',
+  '中級': 'bg-info',
+  '上級': 'bg-warning',
+  '超級': 'bg-danger',
+};
+---
+
+<GameLayout
+  title={game.data.title}
+  description={game.data.description}
+>
+  <!-- ゲームヘッダー -->
+  <div class="mb-4 pb-4 border-bottom">
+    <h1 class="display-4 fw-bold mb-3">{game.data.title}</h1>
+    <p class="lead text-dark mb-3">{game.data.description}</p>
+
+    <!-- メタ情報 -->
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      <span class="badge bg-light text-dark">
+        <span>👥</span>
+        <span>{game.data.players}</span>
+      </span>
+      <span class="badge bg-light text-dark">
+        <span>⏱️</span>
+        <span>{game.data.duration}</span>
+      </span>
+      <span class="badge bg-light text-dark">
+        <span>🎯</span>
+        <span>{game.data.difficulty}</span>
+      </span>
+      <span class="badge bg-light text-dark">
+        <span>🎲</span>
+        <span>サイコロ{game.data.diceCount}個</span>
+      </span>
+    </div>
+
+    <!-- タグ -->
+    <div class="d-flex flex-wrap gap-2">
+      {game.data.category.map((cat: string) => (
+        <span class={`badge ${difficultyColors[game.data.difficulty]}`}>
+          {cat}
+        </span>
+      ))}
+      {game.data.tags?.map((tag: string) => (
+        <span class="badge bg-secondary">{tag}</span>
+      ))}
+    </div>
+  </div>
+
+  <!-- ルール説明(静的コンテンツ) -->
+  <div class="mb-4 text-dark">
+    <Content />
+  </div>
+
+  <hr>
+
+  <!-- ゲーム本体(インタラクティブ) -->
+  <div class="mb-4">
+    <h2 class="h3 fw-bold text-center mb-4">🎮 ブラウザで遊ぶ</h2>
+    <div class="bg-light rounded p-4">
+      {game.data.component === 'ZoromeGame.vue' && (
+        <ZoromeGame
+          client:visible
+          gameSlug={game.slug}
+          {...game.data.config}
+        />
+      )}
+      {game.data.component === 'FiftyGame.vue' && (
+        <FiftyGame
+          client:visible
+          gameSlug={game.slug}
+        />
+      )}
+      {game.data.component === 'QuickMathGame.vue' && (
+        <QuickMathGame
+          client:visible
+          gameSlug={game.slug}
+        />
+      )}
+    </div>
+  </div>
+
+  <!-- ナビゲーション -->
+  <div class="text-center pt-3 border-top">
+    <a href="/games" class="btn btn-primary btn-lg">
+      ← ゲーム一覧に戻る
+    </a>
+  </div>
+</GameLayout>

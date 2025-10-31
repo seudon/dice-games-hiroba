@@ -1,0 +1,140 @@
+---
+// src/pages/about.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="このサイトについて" description="サイコロゲーム広場について">
+  <div class="card">
+    <div class="card-body">
+      <!-- ヘッダー -->
+      <h1 class="display-4 text-center fw-bold mb-4">このサイトについて</h1>
+
+      <!-- サイトの目的 -->
+      <div class="mb-4">
+        <h2 class="h3 fw-bold mb-3">サイトの目的</h2>
+        <p class="text-dark mb-3">
+          サイコロゲーム広場は、様々なサイコロを使ったゲームを紹介し、子供から高齢者まで誰でも楽しめるゲーム体験を提供することを目的としています。
+        </p>
+        <p class="text-dark">
+          実際のサイコロで遊ぶことを推奨しつつ、サイコロがない環境でもブラウザ上でゲームを楽しめるようにしています。
+        </p>
+      </div>
+
+      <hr>
+
+      <!-- 提供している機能 -->
+      <div class="mb-4">
+        <h2 class="h3 fw-bold mb-3">提供している機能</h2>
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-body">
+                <h3 class="h5 fw-bold">ルール説明</h3>
+                <p class="text-dark mb-0">各ゲームのルールをわかりやすく説明しています。初心者でも簡単に理解できる内容です。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="card">
+              <div class="card-body">
+                <h3 class="h5 fw-bold">記録表機能</h3>
+                <p class="text-dark mb-0">あなたのゲーム記録をブラウザに保存します。友達や家族と記録を競い合うことができます。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="card">
+              <div class="card-body">
+                <h3 class="h5 fw-bold">ブラウザゲーム</h3>
+                <p class="text-dark mb-0">サイコロがなくても、ブラウザ上でゲームを体験できます。いつでもどこでも遊べます。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- 使い方 -->
+      <div class="mb-4">
+        <h2 class="h3 fw-bold mb-3">使い方</h2>
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="d-flex gap-3">
+              <div class="flex-shrink-0">
+                <span class="badge bg-primary fs-4 p-3">1</span>
+              </div>
+              <div>
+                <h3 class="h5 fw-bold">ゲームを選ぶ</h3>
+                <p class="text-dark mb-0">トップページまたはゲーム一覧から、遊びたいゲームを選択します。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="d-flex gap-3">
+              <div class="flex-shrink-0">
+                <span class="badge bg-primary fs-4 p-3">2</span>
+              </div>
+              <div>
+                <h3 class="h5 fw-bold">ルールを読む</h3>
+                <p class="text-dark mb-0">ゲームページでルールを確認します。実際のサイコロで遊ぶこともできます。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="d-flex gap-3">
+              <div class="flex-shrink-0">
+                <span class="badge bg-primary fs-4 p-3">3</span>
+              </div>
+              <div>
+                <h3 class="h5 fw-bold">ブラウザで遊ぶ</h3>
+                <p class="text-dark mb-0">ブラウザゲームセクションでゲームを体験します。記録は自動的に保存されます。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- 技術スタック -->
+      <div class="mb-4">
+        <h2 class="h3 fw-bold mb-3">技術スタック</h2>
+        <p class="text-dark mb-2">このサイトは以下の技術で構築されています:</p>
+        <ul class="text-dark">
+          <li>Astro 5.x - 高速な静的サイトジェネレーター</li>
+          <li>Vue 3 - インタラクティブなUIコンポーネント</li>
+          <li>TypeScript - 型安全な開発</li>
+          <li>LocalStorage - ブラウザ内でのデータ保存</li>
+        </ul>
+      </div>
+
+      <hr>
+
+      <!-- プライバシーについて -->
+      <div class="mb-4">
+        <h2 class="h3 fw-bold mb-3">プライバシーについて</h2>
+        <div class="alert alert-info">
+          <p class="text-dark mb-2">
+            このサイトでは、ゲーム記録をあなたのブラウザのLocalStorageに保存します。
+            サーバーにデータを送信することはなく、すべてのデータはあなたのデバイスに保存されます。
+          </p>
+          <p class="text-dark mb-0">
+            ブラウザのキャッシュをクリアすると、保存された記録も削除されますのでご注意ください。
+          </p>
+        </div>
+      </div>
+
+      <!-- ナビゲーション -->
+      <div class="text-center pt-3 border-top">
+        <a href="/" class="btn btn-primary">
+          ← ホームに戻る
+        </a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
