@@ -11,7 +11,7 @@ const gamesCollection = defineCollection({
     duration: z.string(),                     // 例: '5-10分'
     difficulty: z.enum(['初級', '中級', '上級', '超級']),
     diceCount: z.number().min(1).max(10),     // 使用するサイコロの数
-    category: z.enum(['運ゲー', '戦略ゲー', '計算ゲー', 'パーティーゲー']).array(),
+    category: z.enum(['運ゲー', '戦略ゲー', '計算ゲー', 'パーティーゲー', 'TRPG', '統計', 'ロールプレイ']).array(),
     tags: z.string().array().optional(),
     publishedAt: z.date(),
     updatedAt: z.date().optional(),
