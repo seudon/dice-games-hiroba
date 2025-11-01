@@ -5,6 +5,7 @@ import GameLayout from '../../layouts/GameLayout.astro';
 import ZoromeGame from '../../components/games/ZoromeGame.vue';
 import FiftyGame from '../../components/games/FiftyGame.vue';
 import QuickMathGame from '../../components/games/QuickMathGame.vue';
+import DiceAdventureGame from '../../components/games/DiceAdventureGame.vue';
 
 export async function getStaticPaths() {
   const games = await getCollection('games');
@@ -96,6 +97,12 @@ const baseUrl = import.meta.env.BASE_URL;
       )}
       {game.data.component === 'QuickMathGame.vue' && (
         <QuickMathGame
+          client:visible
+          gameSlug={game.slug}
+        />
+      )}
+      {game.data.component === 'DiceAdventureGame.vue' && (
+        <DiceAdventureGame
           client:visible
           gameSlug={game.slug}
         />
