@@ -426,11 +426,6 @@ onMounted(async () => {
 
 <template>
   <div>
-    <!-- ゲーム終了メッセージ -->
-    <div v-if="isGameFinished" class="alert alert-success text-center fw-bold mb-4">
-      🎉 ゲーム終了！ 最終スコア: {{ totalScore }}点
-    </div>
-
     <!-- 2カラムレイアウト（PC）/ 縦並び（モバイル） -->
     <div class="row mb-4">
       <!-- 右カラム: ゲームプレイエリア（モバイルでは上部） -->
@@ -484,8 +479,11 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- ヒント -->
-        <div v-if="bestAvailableCategory && !isGameFinished" class="alert alert-info mb-0">
+        <!-- ヒント/ゲーム終了メッセージ -->
+        <div v-if="isGameFinished" class="alert alert-success text-center fw-bold mb-0">
+          🎉 ゲーム終了！ 最終スコア: {{ totalScore }}点
+        </div>
+        <div v-else-if="bestAvailableCategory" class="alert alert-info mb-0">
           💡 おすすめ: <strong>{{ bestAvailableCategory.name }}</strong> ({{ bestAvailableCategory.score }}点)
         </div>
       </div>
@@ -507,23 +505,28 @@ onMounted(async () => {
                   v-for="category in ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'] as CategoryKey[]"
                   :key="category"
                   @click="selectCategory(category)"
-                  :class="{ 'table-active': scoreBoard[category] === null && rollCount > 0 && !isGameFinished }"
-                  style="cursor: pointer;"
+                  :class="{
+                    'score-confirmed': scoreBoard[category] !== null,
+                    'score-pending': scoreBoard[category] === null && rollCount > 0 && !isGameFinished,
+                    'score-disabled': scoreBoard[category] === null && (rollCount === 0 || isGameFinished)
+                  }"
                 >
-                  <td class="fw-bold">{{ getCategoryName(category) }}</td>
+                  <td class="fw-bold">
+                    {{ getCategoryName(category) }}
+                  </td>
                   <td class="text-end">
-                    <span v-if="scoreBoard[category] !== null">{{ scoreBoard[category] }}</span>
-                    <span v-else-if="rollCount > 0 && !isGameFinished" class="text-muted">
+                    <span v-if="scoreBoard[category] !== null" class="score-value">{{ scoreBoard[category] }}</span>
+                    <span v-else-if="rollCount > 0 && !isGameFinished" class="score-preview">
                       ({{ calculateScore(category, getDiceValues()) }})
                     </span>
                     <span v-else>-</span>
                   </td>
                 </tr>
-                <tr class="table-warning fw-bold">
-                  <td>ボーナス (63点以上で+35点)</td>
+                <tr class="table-warning fw-bold bonus-row">
+                  <td>🏆 ボーナス (63点以上で+35点)</td>
                   <td class="text-end">{{ bonus }}</td>
                 </tr>
-                <tr class="table-light fw-bold">
+                <tr class="table-light fw-bold section-total">
                   <td>上段合計</td>
                   <td class="text-end">{{ upperSectionTotal + bonus }}</td>
                 </tr>
@@ -542,19 +545,24 @@ onMounted(async () => {
                   v-for="category in ['threeOfKind', 'fourOfKind', 'fullHouse', 'smallStraight', 'largeStraight', 'yahtzee', 'chance'] as CategoryKey[]"
                   :key="category"
                   @click="selectCategory(category)"
-                  :class="{ 'table-active': scoreBoard[category] === null && rollCount > 0 && !isGameFinished }"
-                  style="cursor: pointer;"
+                  :class="{
+                    'score-confirmed': scoreBoard[category] !== null,
+                    'score-pending': scoreBoard[category] === null && rollCount > 0 && !isGameFinished,
+                    'score-disabled': scoreBoard[category] === null && (rollCount === 0 || isGameFinished)
+                  }"
                 >
-                  <td class="fw-bold">{{ getCategoryName(category) }}</td>
+                  <td class="fw-bold">
+                    {{ getCategoryName(category) }}
+                  </td>
                   <td class="text-end">
-                    <span v-if="scoreBoard[category] !== null">{{ scoreBoard[category] }}</span>
-                    <span v-else-if="rollCount > 0 && !isGameFinished" class="text-muted">
+                    <span v-if="scoreBoard[category] !== null" class="score-value">{{ scoreBoard[category] }}</span>
+                    <span v-else-if="rollCount > 0 && !isGameFinished" class="score-preview">
                       ({{ calculateScore(category, getDiceValues()) }})
                     </span>
                     <span v-else>-</span>
                   </td>
                 </tr>
-                <tr class="table-light fw-bold">
+                <tr class="table-light fw-bold section-total">
                   <td>下段合計</td>
                   <td class="text-end">{{ lowerSectionTotal }}</td>
                 </tr>
@@ -567,7 +575,7 @@ onMounted(async () => {
         <div class="table-responsive">
           <table class="table table-bordered">
             <tbody>
-              <tr class="table-primary fw-bold fs-5">
+              <tr class="table-primary fw-bold fs-5 grand-total">
                 <td>総合計</td>
                 <td class="text-end">{{ totalScore }}点</td>
               </tr>
@@ -581,8 +589,8 @@ onMounted(async () => {
 
     <!-- リセットボタン -->
     <div class="text-center mb-4">
-      <button @click="resetGame" class="btn btn-secondary btn-lg" type="button">
-        新しいゲームを開始
+      <button @click="resetGame" class="btn btn-success btn-lg" type="button">
+        🎲 新しいゲームを開始
       </button>
     </div>
 
@@ -632,3 +640,100 @@ onMounted(async () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* スコアボードのテーブルスタイル */
+.table-bordered {
+  border: 2px solid #dee2e6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.table-bordered td,
+.table-bordered th {
+  border: 1px solid #dee2e6;
+}
+
+/* 確定済み行 */
+.table tbody tr.score-confirmed {
+  background-color: #ffe4e6 !important;
+  cursor: default;
+}
+
+.score-confirmed td {
+  background-color: #ffe4e6 !important;
+}
+
+.score-confirmed .score-value {
+  color: #212529;
+  font-weight: bold;
+}
+
+/* 未確定（選択可能）行 */
+.score-pending {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.score-pending:hover {
+  background-color: #e3f2fd !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
+}
+
+.score-preview {
+  font-style: italic;
+  color: #6c757d;
+  font-size: 0.9em;
+}
+
+/* 無効行 */
+.score-disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+/* ボーナス行 */
+.bonus-row {
+  background-color: #fff3cd !important;
+  border-top: 2px solid #ffc107 !important;
+  border-bottom: 2px solid #ffc107 !important;
+}
+
+/* セクション合計行 */
+.section-total {
+  background-color: #f8f9fa !important;
+  border-top: 2px solid #6c757d !important;
+}
+
+/* 総合計行 */
+.grand-total {
+  background: linear-gradient(135deg, #cfe2ff 0%, #9ec5fe 100%) !important;
+  color: #212529 !important;
+  box-shadow: 0 4px 8px rgba(0, 56, 179, 0.3);
+  border: 2px solid #0d6efd !important;
+}
+
+.grand-total td {
+  color: #212529 !important;
+  border-color: #0d6efd !important;
+  font-weight: bold;
+}
+
+/* スコアボードカード全体に立体感 */
+.card {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ボタンのdisabled状態 */
+.btn-primary:disabled {
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+</style>
