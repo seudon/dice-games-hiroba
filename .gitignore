@@ -3,6 +3,7 @@ node_modules/
 
 # Build output
 dist/
+output/
 .astro/
 
 # Environment files
@@ -51,8 +52,6 @@ coverage/
 .cursor/
 .windsurf/
 .claude/
-CLAUDE.md
 
 # Project files
-docs/
 refs/
