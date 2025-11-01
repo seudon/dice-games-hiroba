@@ -102,8 +102,9 @@
 
 ## 📖 詳細ドキュメント
 
-- **実装ガイド**: `CLAUDE.md`
-- **設計書**: `docs/dice-games-design-doc.md`
+- **実装ガイド**: [`CLAUDE.md`](CLAUDE.md)
+- **設計書**: [`docs/dice-games-design-doc.md`](docs/dice-games-design-doc.md)
+- **Git運用ワークフロー**: [`docs/git-workflow.md`](docs/git-workflow.md)
 
 ## 🔧 開発方針
 
@@ -113,6 +114,41 @@
 - Vue 3 Composition API統一
 - Bootstrap 5のみでスタイリング（カスタムCSSは最小限）
 - 段階的実装（1ゲームを完成させてからパターン化）
+
+## 🔀 Git運用ルール
+
+このプロジェクトでは厳格なブランチ管理を実施しています。
+
+### 基本ルール
+
+- ✅ mainブランチへの直接コミット禁止
+- ✅ すべての変更は機能ブランチ経由
+- ✅ Pull Request必須
+- ✅ Conventional Commits形式のコミットメッセージ
+
+### 開発フロー
+
+```bash
+# 1. 新しいブランチを作成
+git checkout -b feat/feature-name
+
+# 2. 変更を実装してコミット
+git add .
+git commit -m "feat: implement feature"
+
+# 3. リモートにプッシュ
+git push origin feat/feature-name
+
+# 4. Pull Request (PR) を作成
+gh pr create --title "タイトル" --body "説明"
+
+# 5. マージ後のクリーンアップ
+git checkout main
+git pull origin main
+git branch -d feat/feature-name
+```
+
+詳細は [`docs/git-workflow.md`](docs/git-workflow.md) を参照してください。
 
 ## 📝 ライセンス
 

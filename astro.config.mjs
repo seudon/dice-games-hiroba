@@ -7,9 +7,10 @@ import vue from '@astrojs/vue';
 export default defineConfig({
   integrations: [vue()],
 
-  // GitHub Pagesにデプロイする場合は以下を設定してください
-  // site: 'https://yourusername.github.io',
-  // base: '/dice-games-hiroba',
+  // GitHub Pages用の設定
+  site: 'https://seudon.github.io',
+  base: '/dice-games-hiroba',
+
   build: {
     assets: '_assets',
   },
