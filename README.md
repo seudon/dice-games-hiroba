@@ -2,6 +2,10 @@
 
 子供から高齢者まで楽しめるサイコロゲーム集のWebサイト
 
+**🌐 公開サイト**: https://seudon.github.io/dice-games-hiroba/
+
+ブラウザ上でサイコロゲームを楽しめます。実際のサイコロがなくても、すぐに遊べます！
+
 ## 🎲 プロジェクト概要
 
 様々なサイコロゲームのルール、記録表、ブラウザゲームを提供するWebサイトです。
@@ -13,7 +17,7 @@
 - **UIコンポーネント**: Vue 3 (Composition API)
 - **スタイリング**: Bootstrap 5.3 (CDN)
 - **TypeScript**: strict mode
-- **ホスティング**: GitHub Pages (予定)
+- **ホスティング**: GitHub Pages
 
 ## 📁 プロジェクト構造
 
