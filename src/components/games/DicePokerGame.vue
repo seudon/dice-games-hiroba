@@ -577,6 +577,7 @@ onMounted(async () => {
       </div>
     </div>
     </div>
+    </div>
 
     <!-- リセットボタン -->
     <div class="text-center mb-4">
