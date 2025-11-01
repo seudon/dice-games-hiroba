@@ -24,6 +24,8 @@ const difficultyColors: Record<string, string> = {
   '上級': 'bg-warning',
   '超級': 'bg-danger',
 };
+
+const baseUrl = import.meta.env.BASE_URL;
 ---
 
 <GameLayout
@@ -103,7 +105,7 @@ const difficultyColors: Record<string, string> = {
 
   <!-- ナビゲーション -->
   <div class="text-center pt-3 border-top">
-    <a href="/games" class="btn btn-primary btn-lg">
+    <a href={`${baseUrl}games`} class="btn btn-primary btn-lg">
       ← ゲーム一覧に戻る
     </a>
   </div>
