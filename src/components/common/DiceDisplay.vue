@@ -5,20 +5,47 @@ interface Props {
   value: DiceValue;
   size?: 'sm' | 'md' | 'lg';
   isRolling?: boolean;
+  isKept?: boolean;
+  clickable?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   size: 'md',
   isRolling: false,
+  isKept: false,
+  clickable: false,
 });
+
+// イベント定義
+const emit = defineEmits<{
+  click: [];
+}>();
+
+// クリックハンドラ
+function handleClick() {
+  if (props.clickable && !props.isRolling) {
+    emit('click');
+  }
+}
 </script>
 
 <template>
   <div
     class="dice-face"
-    :class="[`dice-${size}`, { rolling: isRolling }]"
-    :aria-label="`サイコロ: ${value}の目`"
-    role="img"
+    :class="[
+      `dice-${size}`,
+      {
+        rolling: isRolling,
+        kept: isKept,
+        clickable: clickable
+      }
+    ]"
+    :aria-label="`サイコロ: ${value}の目${isKept ? ' (キープ中)' : ''}`"
+    :role="clickable ? 'button' : 'img'"
+    :tabindex="clickable ? 0 : undefined"
+    @click="handleClick"
+    @keydown.enter="handleClick"
+    @keydown.space.prevent="handleClick"
   >
     <div class="dots" :class="{ 'one-dot': value === 1 }">
       <!-- 1の目 -->
@@ -96,6 +123,33 @@ const props = withDefaults(defineProps<Props>(), {
   25% { transform: rotate(90deg); }
   50% { transform: rotate(180deg); }
   75% { transform: rotate(270deg); }
+}
+
+/* クリック可能なサイコロ */
+.dice-face.clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.dice-face.clickable:hover:not(.rolling) {
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 12px rgba(0, 0, 0, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+.dice-face.clickable:active:not(.rolling) {
+  transform: translateY(0);
+}
+
+/* キープ状態のサイコロ */
+.dice-face.kept {
+  border: 4px solid #28a745;
+  background: #e8f5e9;
+  box-shadow:
+    0 4px 8px rgba(40, 167, 69, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5),
+    0 0 0 2px rgba(40, 167, 69, 0.2);
 }
 
 .dots {

@@ -426,73 +426,73 @@ onMounted(async () => {
 
 <template>
   <div>
-    <!-- ゲーム情報 -->
-    <div class="card mb-4">
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-4">
-            <span class="fw-bold">ラウンド:</span>
-            <span class="ms-2">{{ currentRound }} / {{ maxRounds }}</span>
-          </div>
-          <div class="col-md-4">
-            <span class="fw-bold">振り直し:</span>
-            <span class="ms-2">{{ rollCount }} / {{ maxRerolls }}</span>
-          </div>
-          <div class="col-md-4">
-            <span class="fw-bold">現在のスコア:</span>
-            <span class="ms-2">{{ totalScore }}点</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- ゲーム終了メッセージ -->
     <div v-if="isGameFinished" class="alert alert-success text-center fw-bold mb-4">
       🎉 ゲーム終了！ 最終スコア: {{ totalScore }}点
     </div>
 
-    <!-- サイコロ表示 -->
-    <div class="mb-4">
-      <DiceTray :dice="dice" />
+    <!-- 2カラムレイアウト（PC）/ 縦並び（モバイル） -->
+    <div class="row mb-4">
+      <!-- 右カラム: ゲームプレイエリア（モバイルでは上部） -->
+      <div class="col-md-7 order-md-2 order-1 mb-4 mb-md-0">
+        <!-- ゲーム情報 -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-4">
+                <span class="fw-bold">ラウンド:</span>
+                <span class="ms-2">{{ currentRound }} / {{ maxRounds }}</span>
+              </div>
+              <div class="col-md-4">
+                <span class="fw-bold">振り直し:</span>
+                <span class="ms-2">{{ rollCount }} / {{ maxRerolls }}</span>
+              </div>
+              <div class="col-md-4">
+                <span class="fw-bold">現在のスコア:</span>
+                <span class="ms-2">{{ totalScore }}点</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      <!-- キープボタン -->
-      <div v-if="rollCount > 0 && !isGameFinished" class="d-flex justify-content-center gap-2 mt-3">
-        <button
-          v-for="(kept, index) in keptDice"
-          :key="index"
-          @click="toggleKeep(index)"
-          :class="[
-            'btn',
-            kept ? 'btn-success' : 'btn-secondary'
-          ]"
-          type="button"
-          style="width: 80px;"
-        >
-          {{ kept ? 'キープ中' : 'キープ' }}
-        </button>
+        <!-- サイコロ表示 -->
+        <div class="mb-4">
+          <DiceTray
+            :dice="dice"
+            :keptDice="keptDice"
+            :clickable="rollCount > 0 && !isGameFinished"
+            @dice-click="toggleKeep"
+          />
+
+          <!-- 説明テキスト -->
+          <div v-if="rollCount > 0 && !isGameFinished" class="text-center mt-3">
+            <small class="text-muted">💡 サイコロをクリックしてキープ/解除できます</small>
+          </div>
+        </div>
+
+        <!-- コントロール -->
+        <div v-if="!isGameFinished" class="card mb-4">
+          <div class="card-body text-center">
+            <button
+              @click="roll"
+              :disabled="!canRoll"
+              class="btn btn-primary btn-lg"
+              type="button"
+            >
+              {{ isRolling ? 'サイコロを振っています...' : 'サイコロを振る' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- ヒント -->
+        <div v-if="bestAvailableCategory && !isGameFinished" class="alert alert-info mb-0">
+          💡 おすすめ: <strong>{{ bestAvailableCategory.name }}</strong> ({{ bestAvailableCategory.score }}点)
+        </div>
       </div>
-    </div>
 
-    <!-- コントロール -->
-    <div v-if="!isGameFinished" class="card mb-4">
-      <div class="card-body text-center">
-        <button
-          @click="roll"
-          :disabled="!canRoll"
-          class="btn btn-primary btn-lg"
-          type="button"
-        >
-          {{ isRolling ? 'サイコロを振っています...' : 'サイコロを振る' }}
-        </button>
-      </div>
-    </div>
-
-    <!-- ヒント -->
-    <div v-if="bestAvailableCategory && !isGameFinished" class="alert alert-info mb-4">
-      💡 おすすめ: <strong>{{ bestAvailableCategory.name }}</strong> ({{ bestAvailableCategory.score }}点)
-    </div>
-
-    <!-- スコアボード -->
+      <!-- 左カラム: スコアボード（モバイルでは下部） -->
+      <div class="col-md-5 order-md-1 order-2">
+        <!-- スコアボード -->
     <div class="card mb-4">
       <div class="card-body">
         <h3 class="h5 fw-bold text-center mb-4">📊 スコアボード</h3>
@@ -575,6 +575,7 @@ onMounted(async () => {
           </table>
         </div>
       </div>
+    </div>
     </div>
 
     <!-- リセットボタン -->
