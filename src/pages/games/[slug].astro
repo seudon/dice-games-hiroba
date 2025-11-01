@@ -7,6 +7,7 @@ import FiftyGame from '../../components/games/FiftyGame.vue';
 import QuickMathGame from '../../components/games/QuickMathGame.vue';
 import DiceAdventureGame from '../../components/games/DiceAdventureGame.vue';
 import ChoHanGame from '../../components/games/ChoHanGame.vue';
+import DicePokerGame from '../../components/games/DicePokerGame.vue';
 
 export async function getStaticPaths() {
   const games = await getCollection('games');
@@ -112,6 +113,13 @@ const baseUrl = import.meta.env.BASE_URL;
         <ChoHanGame
           client:visible
           gameSlug={game.slug}
+        />
+      )}
+      {game.data.component === 'DicePokerGame.vue' && (
+        <DicePokerGame
+          client:visible
+          gameSlug={game.slug}
+          {...game.data.config}
         />
       )}
     </div>

@@ -4,19 +4,37 @@ import type { Dice } from '../../types/game';
 
 interface Props {
   dice: Dice[];
+  keptDice?: boolean[];
+  clickable?: boolean;
 }
 
-defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  keptDice: () => [],
+  clickable: false,
+});
+
+// イベント定義
+const emit = defineEmits<{
+  'dice-click': [index: number];
+}>();
+
+// サイコロクリックハンドラ
+function handleDiceClick(index: number) {
+  emit('dice-click', index);
+}
 </script>
 
 <template>
   <div class="dice-tray">
     <div class="dice-area" :data-count="dice.length">
       <DiceDisplay
-        v-for="die in dice"
+        v-for="(die, index) in dice"
         :key="die.id"
         :value="die.value"
         :isRolling="die.isRolling"
+        :isKept="keptDice[index] || false"
+        :clickable="clickable"
+        @click="handleDiceClick(index)"
       />
     </div>
   </div>
