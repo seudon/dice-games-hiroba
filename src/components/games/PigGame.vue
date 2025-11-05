@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import type { Dice } from '../../types/game';
 import { LocalStorageAdapter } from '../../lib/storage/LocalStorage';
-import DiceDisplay from '../common/DiceDisplay.vue';
+import DiceTray from '../common/DiceTray.vue';
 
 // Props
 interface Props {
@@ -24,7 +24,7 @@ interface Stats {
 
 // State
 const storage = new LocalStorageAdapter();
-const dice = ref<Dice>({ id: 0, value: 1, isRolling: false });
+const dice = ref<Dice[]>([{ id: 0, value: 1, isRolling: false }]); // 配列で定義
 const totalScore = ref(0); // 累積得点
 const turnScore = ref(0); // 現在のターン得点
 const turnCount = ref(1); // 現在のターン数
@@ -48,11 +48,11 @@ async function rollDice() {
 
   isRolling.value = true;
   isBurst.value = false;
-  dice.value.isRolling = true;
+  dice.value[0].isRolling = true;
 
   // アニメーション中にランダムな値を表示
   const animationInterval = setInterval(() => {
-    dice.value.value = Math.floor(Math.random() * 6 + 1) as any;
+    dice.value[0].value = Math.floor(Math.random() * 6 + 1) as any;
   }, 50);
 
   // 500ms後に最終結果を表示
@@ -61,8 +61,8 @@ async function rollDice() {
 
   // 最終結果
   const result = Math.floor(Math.random() * 6 + 1);
-  dice.value.value = result as any;
-  dice.value.isRolling = false;
+  dice.value[0].value = result as any;
+  dice.value[0].isRolling = false;
   isRolling.value = false;
 
   // 結果処理
@@ -195,7 +195,7 @@ function resetGame() {
   turnCount.value = 1;
   isGameFinished.value = false;
   isBurst.value = false;
-  dice.value.value = 1;
+  dice.value[0].value = 1;
   message.value = '「サイコロを振る」を押してゲームを開始！';
   messageType.value = 'info';
 }
@@ -278,8 +278,8 @@ onMounted(async () => {
         </div>
 
         <!-- サイコロ表示 -->
-        <div class="d-flex justify-content-center mb-4">
-          <DiceDisplay :dice="dice" size="lg" />
+        <div class="mb-4">
+          <DiceTray :dice="dice" />
         </div>
 
         <!-- メッセージ -->

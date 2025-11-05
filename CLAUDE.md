@@ -49,6 +49,127 @@
 3. **レスポンシブデザイン** - 768px以下でモバイル対応
 4. **コメント** - 複雑なロジックには日本語コメント
 5. **エラーハンドリング** - try-catchで適切にエラー処理
+6. **サイコロコンポーネントの正しい使用** - 下記セクション参照
+
+---
+
+### 🎲 サイコロコンポーネントの正しい使用方法（絶対遵守）
+
+**❗ サイコロ表示で出目が表示されない不具合を防ぐため、このルールを厳守すること ❗**
+
+#### 1. 基本ルール：DiceTrayコンポーネントを使用する
+
+**✅ 正しい方法（推奨）:**
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import type { Dice } from '../../types/game';
+import DiceTray from '../common/DiceTray.vue';
+
+// サイコロは必ず配列で定義
+const dice = ref<Dice[]>([
+  { id: 0, value: 1, isRolling: false }
+]);
+</script>
+
+<template>
+  <DiceTray :dice="dice" />
+</template>
+```
+
+**理由:**
+- ✅ カジノ風の緑フェルト背景で見栄えが良い
+- ✅ 1個でも複数個でも対応可能
+- ✅ レスポンシブレイアウト自動調整（1〜15個対応）
+- ✅ 他のゲームコンポーネントと統一された実装
+- ✅ 将来的な拡張が容易
+
+#### 2. ❌ やってはいけないこと
+
+**間違った使い方（出目が表示されない）:**
+```vue
+<!-- ❌ DiceDisplayに直接Diceオブジェクトを渡す -->
+<script setup lang="ts">
+const dice = ref<Dice>({ id: 0, value: 1, isRolling: false });
+</script>
+
+<template>
+  <DiceDisplay :dice="dice" size="lg" />
+  <!-- ❌ DiceDisplayには:diceというpropが存在しない！ -->
+</template>
+```
+
+**なぜダメなのか:**
+- DiceDisplay.vueは`dice`オブジェクトを受け取るpropを持っていない
+- 受け取るのは個別のprops: `value`, `isRolling`, `isKept`, `clickable`
+- そのため`:dice="dice"`と渡しても`value`が渡されず、出目が表示されない
+
+#### 3. DiceDisplayを直接使う場合（特殊ケース）
+
+どうしてもDiceDisplayを直接使う必要がある場合：
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import type { DiceValue } from '../../types/game';
+import DiceDisplay from '../common/DiceDisplay.vue';
+
+const diceValue = ref<DiceValue>(1);
+const isRolling = ref(false);
+</script>
+
+<template>
+  <!-- ✅ 個別propsで渡す -->
+  <DiceDisplay
+    :value="diceValue"
+    :isRolling="isRolling"
+    size="lg"
+  />
+</template>
+```
+
+**注意点:**
+- フェルト背景がないため見栄えが劣る
+- 単一サイコロでも`DiceTray`の使用を推奨
+
+#### 4. データ型の定義
+
+```typescript
+// src/types/game.ts
+
+/** サイコロの出目(1-6) */
+export type DiceValue = 1 | 2 | 3 | 4 | 5 | 6;
+
+/** サイコロの状態 */
+export interface Dice {
+  id: number;
+  value: DiceValue;
+  isRolling: boolean;
+}
+```
+
+**重要:**
+- `dice`は**必ず配列**で管理: `ref<Dice[]>`
+- 単一サイコロでも`ref<Dice[]>([{ id: 0, value: 1, isRolling: false }])`
+
+#### 5. 実装時のチェックリスト
+
+新しいゲームを実装する際は、以下を確認：
+
+- [ ] `DiceTray`コンポーネントをimport
+- [ ] `dice`の型は`ref<Dice[]>`（配列）
+- [ ] サイコロ1個の場合も配列で定義
+- [ ] 他のゲーム（ZoromeGame.vue、QuickMathGame.vueなど）を参考にする
+- [ ] `DiceDisplay`を直接使わない（特別な理由がない限り）
+
+#### 6. 参考実装
+
+**正しい実装例:**
+- `src/components/games/ZoromeGame.vue` - 複数サイコロ（2〜5個）
+- `src/components/games/QuickMathGame.vue` - 複数サイコロ（2〜15個）
+- `src/components/games/ChoHanGame.vue` - 2個のサイコロ
+
+これらのファイルを参考にして実装してください。
 
 ---
 
