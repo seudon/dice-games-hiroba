@@ -3,7 +3,11 @@ title: サイコロ早押し計算
 component: QuickMathGame.vue
 description: サイコロの合計を素早く計算して答えるスピード計算ゲーム
 quickRule: 表示されたサイコロの合計を暗算して入力します。かかった時間を計測するので、自分の記録に挑戦できます。数字キーとEnterだけで操作できます。
-players: 1人〜
+players:
+  min: 1
+equipment:
+  - 6面サイコロ 2〜15個
+  - ストップウォッチ（タイムを計る場合）
 duration: 5-10分
 difficulty: 初級
 diceCount: 2
@@ -12,6 +16,7 @@ tags: [スピード, 暗算, 教育的, 脳トレ, カスタマイズ可能]
 publishedAt: 2025-01-17
 featured: true
 ---
+
 
 ## ゲーム概要
 

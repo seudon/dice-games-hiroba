@@ -3,7 +3,14 @@ title: ダイスアドベンチャー
 description: クトゥルフ神話TRPGのダイスシステムで冒険者の運命を試すゲーム
 quickRule: ランダムに生成された冒険者で、イベントごとにD100（0〜99）を振ります。目標値以下なら成功です。HPかSAN値が0になるとその冒険者は脱落します。
 difficulty: 中級
-players: 1人
+players:
+  min: 1
+  max: 1
+equipment:
+  - 10面サイコロ 2個（D100用）
+  - 6面サイコロ 2個（ダメージ用）
+  - 12面サイコロ 2個（SANダメージ用）
+  - 紙とペン（キャラクターシート用）
 duration: 10-20分
 diceCount: 2
 category:
@@ -12,6 +19,7 @@ featured: false
 component: DiceAdventureGame.vue
 publishedAt: 2025-11-01
 ---
+
 
 ## ゲーム概要
 

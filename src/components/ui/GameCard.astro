@@ -1,21 +1,14 @@
 ---
 // src/components/ui/GameCard.astro
 import type { CollectionEntry } from 'astro:content';
+import { formatPlayers, difficultyColors } from '../../lib/utils/game';
 
 interface Props {
   game: CollectionEntry<'games'>;
 }
 
 const { game } = Astro.props;
-const { title, description, difficulty, players, duration, diceCount, category } = game.data;
-
-// 難易度に応じたバッジカラー
-const difficultyColors: Record<string, string> = {
-  '初級': 'bg-success',
-  '中級': 'bg-info',
-  '上級': 'bg-warning',
-  '超級': 'bg-danger',
-};
+const { title, description, difficulty, duration, category, players, equipment } = game.data;
 
 const baseUrl = import.meta.env.BASE_URL;
 ---
@@ -33,21 +26,23 @@ const baseUrl = import.meta.env.BASE_URL;
     <!-- 説明 -->
     <p class="card-text text-dark">{description}</p>
 
-    <!-- メタ情報 -->
-    <div class="d-flex flex-wrap gap-2 mb-3">
-      <span class="text-dark">
+    <!-- 遊ぶ目安 -->
+    <div class="d-flex flex-wrap gap-3 mb-2 small text-dark">
+      <span>
         <span>👥</span>
-        <span>{players}</span>
+        <span>{formatPlayers(players)}</span>
       </span>
-      <span class="text-dark">
+      <span>
         <span>⏱️</span>
         <span>{duration}</span>
       </span>
-      <span class="text-dark">
-        <span>🎲</span>
-        <span>{diceCount}個</span>
-      </span>
     </div>
+
+    <!-- 実際に遊ぶために必要な道具 -->
+    <p class="small text-dark mb-3">
+      <span>🎲</span>
+      <span>{equipment.join(' / ')}</span>
+    </p>
 
     <!-- カテゴリータグ -->
     <div class="d-flex flex-wrap gap-2">

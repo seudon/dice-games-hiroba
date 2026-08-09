@@ -221,10 +221,14 @@ const gamesCollection = defineCollection({
     component: z.string(),                    // 例: 'ZoromeGame.vue'
     description: z.string(),
     quickRule: z.string(),                    // ゲーム直前に出す要点（2〜3文）
-    players: z.string(),
+    players: z.object({                       // 実物で遊ぶときの人数
+      min: z.number().min(1),
+      max: z.number().optional(),
+    }),
+    equipment: z.string().array().min(1),     // 実際に遊ぶために必要な道具
     duration: z.string(),
     difficulty: z.enum(['初級', '中級', '上級', '超級']),
-    diceCount: z.number().min(1).max(10),
+    diceCount: z.number().min(1).max(15),
     category: z.enum(['運ゲー', '戦略ゲー', '計算ゲー', 'パーティーゲー',
                       'TRPG', '統計', 'ロールプレイ']).array(),
     tags: z.string().array().optional(),
@@ -239,9 +243,27 @@ const gamesCollection = defineCollection({
 `config` に書いた値は `[slug].astro` でそのままpropsに展開されるため、
 ゲームの調整値（目標点、ラウンド数など）をコンポーネントを触らずに変更できる。
 
-**既知の不整合**: `src/pages/games/index.astro` のカテゴリー別セクションは
-先頭4カテゴリーのみを対象にしている。TRPG・統計・ロールプレイを指定したゲームは
-「すべてのゲーム」にしか表示されない。
+`players` と `equipment` は、実物のサイコロで遊ぶ人のための情報。
+ゲームカード、ゲームページの「実物のサイコロで遊ぶ」節、
+印刷用ルールカードの3か所で使われる。
+
+### 実物で遊ぶことを主役に戻す
+
+このサイトは元々「実際のサイコロで遊んでね」という立場で作られたが、
+その情報がMarkdown本文の奥に埋もれ、ブラウザゲームより下にあった。
+実物で遊びたい人にも、ブラウザで遊びたい人にも届かない状態だった。
+
+現在は次の3つで実物のプレイを支えている。
+
+1. **frontmatterの構造化** — `equipment`（面数と個数を明示）と `players`
+2. **「実物のサイコロで遊ぶ」節** — ゲーム本体の直下に独立して配置
+3. **印刷用ルールカード** — 必要なもの・人数・ルール・得点記録表を1枚に
+
+印刷は `d-none d-print-block` / `d-print-none` で切り替えており、
+専用ページもカスタムCSSも持たない。印刷するとルールカードだけが出る。
+
+ゲーム一覧を `diceCount` でグルーピングしているのも同じ理由で、
+実物で遊ぶときは「手元に何個あるか」が最初の制約になるため。
 
 ### ストレージ抽象レイヤー
 

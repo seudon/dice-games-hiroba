@@ -3,7 +3,11 @@ title: 50ゲーム
 component: FiftyGame.vue
 description: サイコロを振って合計を50ぴったりに近づける戦略的ゲーム
 quickRule: サイコロ2個を振り、出た目の合計を足していきます。ちょうど50を目指しますが、超えたらバーストです。どこでやめるかが勝負の分かれ目です。
-players: 1人〜
+players:
+  min: 1
+equipment:
+  - 6面サイコロ 2個
+  - 紙とペン（累計スコアの記録用）
 duration: 10-15分
 difficulty: 中級
 diceCount: 2
@@ -12,6 +16,7 @@ tags: [累積, 戦略性, 駆け引き]
 publishedAt: 2025-01-16
 featured: true
 ---
+
 
 ## ゲーム概要
 
