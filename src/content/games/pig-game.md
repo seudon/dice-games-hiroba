@@ -2,6 +2,7 @@
 title: ブタのしっぽ
 component: PigGame.vue
 description: 1が出たら全没収！欲張りすぎると危険なチキンレースゲーム
+quickRule: サイコロを振って得点を貯めます。ただし1が出たら、そのターンの得点は全て没収です。「やめる」を選べば得点が確定し、先に100点へ到達すればクリアです。
 players: 1人
 duration: 3-5分
 difficulty: 初級
@@ -15,8 +16,6 @@ config:
   minDice: 1
   maxDice: 1
 ---
-
-# ブタのしっぽ（Pig Game）
 
 ## ゲーム概要
 

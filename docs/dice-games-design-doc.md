@@ -43,6 +43,26 @@ src/components/games/{Name}.vue  client:visible でハイドレート
 ゲーム本体だけがAstro Islandsとしてハイドレートされるため、
 ゲームを追加してもトップページや一覧ページの転送量は増えない。
 
+### ゲームページの構成
+
+当初はルール説明を読ませることを主目的としたため、
+「ヘッダー → ルール全文 → ゲーム本体」という縦一列の構成だった。
+しかし実際にはブラウザゲームが主に使われるようになり、
+ルールを丁寧に書くほどゲームが下に押しやられる状態になっていた
+（実測でスマホ最大6.6画面ぶんのスクロールが必要）。
+
+現在はゲーム本体を先に置き、詳細なルールは折りたたんでいる。
+
+```
+ヘッダー（タイトル・難易度・カテゴリー・説明・メタ情報）
+クイックルール（frontmatterの quickRule / 2〜3文）
+ゲーム本体                              ← 全ゲームが0.7画面以内
+詳しいルールと戦略（<details>で折りたたみ）
+```
+
+折りたたみに `<details>` を使っているのは、JavaScript不要で
+キーボード操作にも対応でき、中身がHTMLに存在するため検索エンジンにも読まれるため。
+
 ### コンポーネント解決の制約
 
 `[slug].astro` は `game.data.component` の**文字列マッチで分岐**している。
@@ -182,6 +202,7 @@ const gamesCollection = defineCollection({
     title: z.string(),
     component: z.string(),                    // 例: 'ZoromeGame.vue'
     description: z.string(),
+    quickRule: z.string(),                    // ゲーム直前に出す要点（2〜3文）
     players: z.string(),
     duration: z.string(),
     difficulty: z.enum(['初級', '中級', '上級', '超級']),
