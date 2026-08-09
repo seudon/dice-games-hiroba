@@ -228,19 +228,19 @@ onMounted(async () => {
     <div class="card mb-4">
       <div class="card-body">
         <div class="row g-3">
-          <div class="col-md-4">
+          <div class="col-4">
             <div class="text-center">
               <div class="small text-dark">目標</div>
               <div class="fs-4 fw-bold text-primary">{{ targetScore }}点</div>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-4">
             <div class="text-center">
               <div class="small text-dark">累積得点</div>
               <div class="fs-4 fw-bold text-dark">{{ totalScore }}点</div>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-4">
             <div class="text-center">
               <div class="small text-dark">ターン数</div>
               <div class="fs-4 fw-bold text-dark">{{ turnCount }}</div>
@@ -251,16 +251,14 @@ onMounted(async () => {
     </div>
 
     <!-- 現在のターン -->
-    <div class="card mb-4">
+    <div class="card mb-3">
       <div class="card-body">
-        <h3 class="h5 fw-bold text-center mb-4">今回のターン</h3>
-
         <!-- ターン得点表示 -->
-        <div class="text-center mb-4">
-          <div class="small text-dark mb-2">ターン得点</div>
+        <div class="text-center mb-3">
+          <div class="small text-dark mb-1">今回のターン得点</div>
           <div
             :class="[
-              'display-4 fw-bold',
+              'fs-1 fw-bold',
               dangerLevel === 'danger' ? 'text-danger' :
               dangerLevel === 'warning' ? 'text-warning' :
               'text-success'
@@ -283,14 +281,14 @@ onMounted(async () => {
         </div>
 
         <!-- サイコロ表示 -->
-        <div class="mb-4">
+        <div class="mb-3">
           <DiceTray :dice="dice" />
         </div>
 
         <!-- メッセージ -->
         <div
           :class="[
-            'alert text-center mb-4',
+            'alert text-center mb-3 py-2',
             `alert-${messageType}`
           ]"
           role="status"

@@ -62,7 +62,7 @@ const baseUrl = import.meta.env.BASE_URL;
       ))}
     </div>
 
-    <p class="text-dark mb-2">{game.data.description}</p>
+    <p class="small text-dark mb-2">{game.data.description}</p>
 
     <div class="d-flex flex-wrap gap-3 small text-dark">
       <span>
@@ -80,14 +80,8 @@ const baseUrl = import.meta.env.BASE_URL;
     </div>
   </div>
 
-  <!-- クイックルール(これだけ読めば遊べる要点) -->
-  <div class="alert alert-info py-2 mb-3">
-    <span class="badge bg-primary me-2">ルール</span>
-    <span>{game.data.quickRule}</span>
-  </div>
-
   <!-- ゲーム本体(インタラクティブ) -->
-  <div class="bg-light rounded p-3 p-md-4 mb-4">
+  <div class="bg-light rounded p-2 p-md-4 mb-3">
     <GameHost
       client:only="vue"
       component={game.data.component}
@@ -98,6 +92,16 @@ const baseUrl = import.meta.env.BASE_URL;
         ゲームを読み込んでいます...
       </div>
     </GameHost>
+  </div>
+
+  <!--
+    クイックルール。
+    サイコロと操作ボタンをできるだけ画面上部に出すため、ゲームの直後に置く。
+    「触ってみて分からなければすぐ下を読む」という順序を想定している。
+  -->
+  <div class="alert alert-info py-2 mb-4 small">
+    <span class="badge bg-primary me-2">ルール</span>
+    <span>{game.data.quickRule}</span>
   </div>
 
   <!--
@@ -179,7 +183,11 @@ const baseUrl = import.meta.env.BASE_URL;
     サイコロを囲んで遊ぶときに手元に置くことを想定している。
   -->
   <div class="d-none d-print-block">
-    <h1 class="h3 fw-bold">{game.data.title}</h1>
+    <!--
+      ページ側で既に<h1>を出しているため、ここは見出しタグにしない。
+      印刷物としての見た目だけをh3相当に揃える。
+    -->
+    <div class="h3 fw-bold">{game.data.title}</div>
     <p class="text-dark">{game.data.description}</p>
 
     <table class="table table-sm table-borderless w-auto mb-3">
@@ -199,10 +207,10 @@ const baseUrl = import.meta.env.BASE_URL;
       </tbody>
     </table>
 
-    <h2 class="h5 fw-bold">ルール</h2>
+    <div class="h5 fw-bold">ルール</div>
     <p class="text-dark">{game.data.quickRule}</p>
 
-    <h2 class="h5 fw-bold">得点記録表</h2>
+    <div class="h5 fw-bold">得点記録表</div>
     <table class="table table-bordered">
       <thead>
         <tr>

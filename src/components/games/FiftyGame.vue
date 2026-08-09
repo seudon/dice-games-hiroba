@@ -150,22 +150,13 @@ onMounted(() => {
 
 <template>
   <div>
-    <!-- ゲーム説明 -->
-    <div class="card mb-4">
-      <div class="card-body">
-        <h3 class="h5 fw-bold mb-3">🎯 目標</h3>
-        <p class="text-dark mb-2">サイコロを振って合計を<strong>50ぴったり</strong>にしよう！</p>
-        <p class="text-dark mb-0">⚠️ 50を超えたらバースト（失敗）です</p>
-      </div>
-    </div>
-
     <!-- スコア表示 -->
-    <div class="card mb-4">
+    <div class="card mb-3">
       <div class="card-body">
         <div class="row row-cols-3 g-3 text-center">
           <div class="col">
             <div class="small text-dark">現在のスコア</div>
-            <div class="display-4 fw-bold" :class="{
+            <div class="fs-1 fw-bold" :class="{
               'text-success': riskLevel === 'safe',
               'text-primary': riskLevel === 'caution',
               'text-warning': riskLevel === 'warning',
@@ -176,11 +167,11 @@ onMounted(() => {
           </div>
           <div class="col">
             <div class="small text-dark">あと</div>
-            <div class="display-4 fw-bold text-dark">{{ 50 - currentScore }}</div>
+            <div class="fs-1 fw-bold text-dark">{{ 50 - currentScore }}</div>
           </div>
           <div class="col">
             <div class="small text-dark">ターン数</div>
-            <div class="display-4 fw-bold text-dark">{{ turns }}</div>
+            <div class="fs-1 fw-bold text-dark">{{ turns }}</div>
           </div>
         </div>
 
@@ -207,7 +198,7 @@ onMounted(() => {
     </div>
 
     <!-- サイコロ表示 -->
-    <div class="mb-4">
+    <div class="mb-3">
       <DiceTray :dice="dice" />
     </div>
 
@@ -215,7 +206,7 @@ onMounted(() => {
     <div
       v-if="resultMessage"
       :class="[
-        'alert text-center fw-bold mb-4',
+        'alert text-center fw-bold mb-3 py-2',
         isGameFinished && !isBusted ? 'alert-success' :
         isBusted ? 'alert-danger' : 'alert-info'
       ]"

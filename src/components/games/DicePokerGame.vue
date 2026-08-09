@@ -438,18 +438,19 @@ onMounted(async () => {
         <!-- ゲーム情報 -->
         <div class="card mb-4">
           <div class="card-body">
-            <div class="row">
-              <div class="col-md-4">
-                <span class="fw-bold">ラウンド:</span>
-                <span class="ms-2">{{ currentRound }} / {{ maxRounds }}</span>
+            <!-- スマホでも1行に収まるよう、ラベルと数値を縦に積む -->
+            <div class="row text-center">
+              <div class="col-4">
+                <div class="small text-dark">ラウンド</div>
+                <div class="fw-bold text-dark">{{ currentRound }} / {{ maxRounds }}</div>
               </div>
-              <div class="col-md-4">
-                <span class="fw-bold">振り直し:</span>
-                <span class="ms-2">{{ rollCount }} / {{ maxRerolls }}</span>
+              <div class="col-4">
+                <div class="small text-dark">振り直し</div>
+                <div class="fw-bold text-dark">{{ rollCount }} / {{ maxRerolls }}</div>
               </div>
-              <div class="col-md-4">
-                <span class="fw-bold">現在のスコア:</span>
-                <span class="ms-2">{{ totalScore }}点</span>
+              <div class="col-4">
+                <div class="small text-dark">スコア</div>
+                <div class="fw-bold text-primary">{{ totalScore }}点</div>
               </div>
             </div>
           </div>
