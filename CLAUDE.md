@@ -2,14 +2,16 @@
 
 ## プロジェクト概要
 
-子供から高齢者まで楽しめるサイコロゲーム集のWebサイトを構築します。
+子供から高齢者まで楽しめるサイコロゲーム集のWebサイト。
+現在7ゲームを公開中: https://seudon.github.io/dice-games-hiroba/
 
 ### 技術スタック
 
-- **フレームワーク**: Astro 5.x
-- **UIコンポーネント**: Vue 3 (Composition API)
+- **フレームワーク**: Astro 5.x（静的サイト生成）
+- **UIコンポーネント**: Vue 3 (Composition API) - `client:visible` で島ハイドレーション
 - **スタイリング**: Bootstrap 5.3 (CDN)
 - **TypeScript**: strict mode
+- **ホスティング**: GitHub Pages（`main` へのpushで自動デプロイ）
 
 ### 設計方針
 
@@ -21,26 +23,109 @@
 
 ## コミュニケーションルール
 
-### 必須事項
+**日本語でやり取りする** - 説明・質問・回答・コード内コメント・ドキュメントすべて日本語。
 
-1. **日本語でやり取りする** - このプロジェクトでは必ず日本語でコミュニケーションを行う
-   - すべての説明、質問、回答は日本語で行う
-   - コード内のコメントも日本語で記述
-   - ドキュメントも日本語で作成
+---
+
+## アーキテクチャ
+
+### ゲーム1つ = Markdown 1枚 + Vueコンポーネント1枚
+
+```
+src/content/games/{slug}.md      frontmatter（メタ情報 + config）+ 本文（ルール説明）
+        ↓ getCollection() / src/content/config.ts のzodスキーマで型付け
+src/pages/games/[slug].astro     全ゲームページを静的生成
+        ↓ data.component の文字列で分岐し、config をpropsに展開
+src/components/games/{Name}.vue  client:visible でハイドレート
+```
+
+**重要な特性**: `[slug].astro` はコンポーネント名の文字列マッチで分岐する。
+Astroは動的import経路でのコンポーネント解決をしないため、**ゲームを追加するたびに
+`[slug].astro` へ import と分岐ブロックを手で1つずつ足す必要がある**。
+これを忘れるとページは生成されるがゲーム本体が空欄になる（エラーは出ない）。
+
+### ディレクトリ構成
+
+```
+src/
+├── components/
+│   ├── common/    DiceDisplay.vue（単体サイコロ）, DiceTray.vue（トレイ）
+│   ├── games/     各ゲームのVueコンポーネント
+│   └── ui/        GameCard.astro（一覧のカード）
+├── content/
+│   ├── config.ts  Content Collectionsのzodスキーマ
+│   └── games/     ゲーム情報のMarkdown
+├── layouts/       BaseLayout.astro（Bootstrap CDN・ナビ・フッター）, GameLayout.astro
+├── lib/
+│   ├── storage/   LocalStorage.ts（LocalStorageAdapter）
+│   └── utils/     dice.ts（乱数・ぞろ目判定・確率計算）
+├── pages/         index.astro, about.astro, games/index.astro, games/[slug].astro
+└── types/         game.ts（DiceValue, Dice, GameRecord, GameStats, IStorage）
+```
+
+---
+
+## 新しいゲームの追加手順
+
+以下の3ファイルすべてを触る。1つでも欠けると動かない。
+
+### 1. `src/content/games/{slug}.md` を作成
+
+```yaml
+---
+title: ゲーム名
+component: NewGame.vue          # ファイル名を正確に
+description: 一行説明
+players: 1人
+duration: 5-10分
+difficulty: 初級                # 初級 / 中級 / 上級 / 超級
+diceCount: 2                    # 1〜10（スキーマ上の制約）
+category: [運ゲー]              # 下記「カテゴリーの注意」参照
+tags: [タグ1, タグ2]            # 任意
+publishedAt: 2025-01-20
+featured: false                 # true でトップページの「おすすめ」に載る
+config:                         # 任意。そのままpropsに展開される
+  targetScore: 100
+---
+
+（本文にルール説明をMarkdownで記述。ゲームページ上部に表示される）
+```
+
+**カテゴリーの注意**: `src/content/config.ts` のenumは
+`運ゲー / 戦略ゲー / 計算ゲー / パーティーゲー / TRPG / 統計 / ロールプレイ` を許可するが、
+`src/pages/games/index.astro` のカテゴリー別セクションは先頭4つしか表示対象にしていない。
+TRPG・統計・ロールプレイを指定すると、一覧の「すべてのゲーム」にしか出ない。
+使いたい場合は `games/index.astro` の `categories` 配列も更新すること。
+
+### 2. `src/components/games/NewGame.vue` を作成
+
+- propsは `gameSlug: string` を必ず受け取る（記録保存キーに使う）
+- `config` に書いた値は同名propsとして届く
+- サイコロ表示は必ず `DiceTray` を使う（後述の絶対遵守ルール）
+- 既存ゲームを土台にする。最小構成は `ZoromeGame.vue`（289行）が読みやすい
+
+### 3. `src/pages/games/[slug].astro` に登録
+
+```astro
+import NewGame from '../../components/games/NewGame.vue';
+...
+{game.data.component === 'NewGame.vue' && (
+  <NewGame client:visible gameSlug={game.slug} {...game.data.config} />
+)}
+```
+
+`{...game.data.config}` は config を使うゲームのみ付ける。
+
+---
 
 ## 重要な実装ルール
 
 ### ❌ やってはいけないこと
 
-1. **早すぎる共通化をしない**
-   - 1ゲーム目は独立して実装
-   - 共通コンポーネントは3ゲーム目以降
-
-2. **Reactや他のフレームワークを使わない**
-   - Vueのみを使用
-
-3. **LocalStorageを直接使わない**
-   - 必ず`LocalStorageAdapter`を経由
+1. **早すぎる共通化をしない** - 各ゲームは独立実装。共通化は明確な重複が3箇所以上出てから
+2. **Reactや他のフレームワークを使わない** - Vueのみ
+3. **LocalStorageを直接使わない** - 必ず `LocalStorageAdapter` を経由（後述の「記録・統計の保存」参照）
+4. **`DiceDisplay` に `:dice` を渡さない** - 出目が表示されなくなる（後述）
 
 ### ✅ 必ず守ること
 
@@ -56,6 +141,8 @@
 ### 🎲 サイコロコンポーネントの正しい使用方法（絶対遵守）
 
 **❗ サイコロ表示で出目が表示されない不具合を防ぐため、このルールを厳守すること ❗**
+
+過去に実際に発生している（commit 61d94dd「fix: resolve dice display issue in PigGame」）。
 
 #### 1. 基本ルール：DiceTrayコンポーネントを使用する
 
@@ -100,13 +187,11 @@ const dice = ref<Dice>({ id: 0, value: 1, isRolling: false });
 ```
 
 **なぜダメなのか:**
-- DiceDisplay.vueは`dice`オブジェクトを受け取るpropを持っていない
-- 受け取るのは個別のprops: `value`, `isRolling`, `isKept`, `clickable`
-- そのため`:dice="dice"`と渡しても`value`が渡されず、出目が表示されない
+- `DiceDisplay.vue` のpropsは `value` / `size` / `isRolling` / `isKept` / `clickable` の5つだけ
+- `dice` オブジェクトを受け取るpropは存在しない
+- そのため `:dice="dice"` と渡しても `value` が未定義になり、出目が表示されない
 
 #### 3. DiceDisplayを直接使う場合（特殊ケース）
-
-どうしてもDiceDisplayを直接使う必要がある場合：
 
 ```vue
 <script setup lang="ts">
@@ -120,27 +205,18 @@ const isRolling = ref(false);
 
 <template>
   <!-- ✅ 個別propsで渡す -->
-  <DiceDisplay
-    :value="diceValue"
-    :isRolling="isRolling"
-    size="lg"
-  />
+  <DiceDisplay :value="diceValue" :isRolling="isRolling" size="lg" />
 </template>
 ```
 
-**注意点:**
-- フェルト背景がないため見栄えが劣る
-- 単一サイコロでも`DiceTray`の使用を推奨
+**注意点:** フェルト背景がないため見栄えが劣る。単一サイコロでも `DiceTray` を推奨。
 
 #### 4. データ型の定義
 
 ```typescript
 // src/types/game.ts
-
-/** サイコロの出目(1-6) */
 export type DiceValue = 1 | 2 | 3 | 4 | 5 | 6;
 
-/** サイコロの状態 */
 export interface Dice {
   id: number;
   value: DiceValue;
@@ -148,28 +224,81 @@ export interface Dice {
 }
 ```
 
-**重要:**
-- `dice`は**必ず配列**で管理: `ref<Dice[]>`
-- 単一サイコロでも`ref<Dice[]>([{ id: 0, value: 1, isRolling: false }])`
+**重要:** `dice` は**必ず配列**で管理: `ref<Dice[]>`。
+単一サイコロでも `ref<Dice[]>([{ id: 0, value: 1, isRolling: false }])`。
 
-#### 5. 実装時のチェックリスト
+#### 5. DiceTrayの機能
 
-新しいゲームを実装する際は、以下を確認：
+| props | 型 | 用途 |
+|---|---|---|
+| `dice` | `Dice[]` | 表示するサイコロ（必須） |
+| `keptDice` | `boolean[]` | キープ中のサイコロ（インデックス対応） |
+| `clickable` | `boolean` | クリック可能にする |
 
-- [ ] `DiceTray`コンポーネントをimport
-- [ ] `dice`の型は`ref<Dice[]>`（配列）
+emit: `dice-click`（引数: index）。サイコロポーカーのキープ操作で使用。
+
+サイズはサイコロ個数（`data-count` 属性）で自動調整され、1〜15個に対応。
+16個以上を渡すとグリッド指定が効かずレイアウトが崩れる。
+
+#### 6. 実装時のチェックリスト
+
+- [ ] `DiceTray` コンポーネントをimport
+- [ ] `dice` の型は `ref<Dice[]>`（配列）
 - [ ] サイコロ1個の場合も配列で定義
 - [ ] 他のゲーム（ZoromeGame.vue、QuickMathGame.vueなど）を参考にする
-- [ ] `DiceDisplay`を直接使わない（特別な理由がない限り）
+- [ ] `DiceDisplay` を直接使わない（特別な理由がない限り）
 
-#### 6. 参考実装
+---
 
-**正しい実装例:**
-- `src/components/games/ZoromeGame.vue` - 複数サイコロ（2〜5個）
-- `src/components/games/QuickMathGame.vue` - 複数サイコロ（2〜15個）
-- `src/components/games/ChoHanGame.vue` - 2個のサイコロ
+### 記録・統計の保存
 
-これらのファイルを参考にして実装してください。
+`src/lib/storage/LocalStorage.ts` の `LocalStorageAdapter` が `IStorage` を実装する。
+キーは `dice-games:{gameSlug}`、最新100件のみ保持。
+
+**用途によって2系統を使い分ける。**
+
+#### A. 試行回数型 — GameRecord系
+
+「達成までの回数」「タイム」のように**小さいほど良い**記録を扱う。
+
+```typescript
+saveRecord(record: GameRecord): Promise<void>
+getRecords(gameSlug: string, diceCount?: number): Promise<GameRecord[]>
+getStats(gameSlug: string, diceCount?: number): Promise<GameStats>
+clearRecords(gameSlug: string): Promise<void>
+```
+
+**重要な前提**: `getStats()` の `bestScore` は `Math.min(attempts)` で算出する。
+ぞろ目チャレンジ（達成までの回数）やサイコロ早押し計算（タイム）には合うが、
+**得点を競うゲームには合わない**。使用中: ZoromeGame / FiftyGame / QuickMathGame。
+
+#### B. 任意形式 — 汎用データ系
+
+得点型のゲームや、独自の履歴構造を持つゲームはこちら。
+
+```typescript
+saveData<T>(key: string, value: T): Promise<void>
+getData<T>(key: string): Promise<T | null>   // 未保存・JSON破損時はnull
+clearData(key: string): Promise<void>
+```
+
+保存先キーは `dice-games:{key}` になる。keyの付け方はゲーム側で決める。
+
+| ゲーム | key | 内容 |
+|---|---|---|
+| DicePokerGame | `{slug}-stats` | 最高得点・平均点・ヨットの回数 |
+| PigGame | `{slug}-stats` | 最少ターン数・平均ターン数・最高ターン得点 |
+| ChoHanGame | `{slug}` | 総ゲーム数・最高所持金・破産回数 |
+| DiceAdventureGame | `{slug}_events_{イベント数}` | 冒険者ごとの結果履歴 |
+
+**`getData` は必ず型引数を付ける**（`getData<Stats>(key)`）。省略すると戻り値が
+`unknown` になり、strictモードで型エラーになる。
+
+`saveData` は保存失敗時に例外を投げる。統計の保存失敗でゲーム進行を止めないよう、
+呼び出し側でtry-catchして `console.error` に留めること（既存4ゲームがこの形）。
+
+**どちらの系統でも `localStorage` を直接触らない。** 必要な操作がなければ
+`IStorage` と `LocalStorageAdapter` の両方にメソッドを追加する。
 
 ---
 
@@ -177,39 +306,22 @@ export interface Dice {
 
 **❗ すべてのファイル修正後は必ず開発サーバーを再起動すること ❗**
 
-このルールは**例外なく**適用されます。以下を必ず守ってください：
-
-1. **修正後の必須手順**：
+1. **修正後の必須手順**:
    ```bash
    # 1. 開発サーバーを停止（KillShellツールまたはCtrl+C）
    # 2. 開発サーバーを再起動
    npm run dev
    ```
 
-2. **再起動が必須のケース**：
-   - ✅ .vueファイルの修正（特にscoped styleの変更）
-   - ✅ .astroファイルの修正（レイアウト、コンポーネント）
-   - ✅ TypeScriptファイルの修正
-   - ✅ スタイル変更（CSS、scoped style）
-   - ✅ 設定ファイル変更（astro.config.mjs、tsconfig.json）
-   - ✅ Content Collections関連ファイルの変更
-   - ✅ その他すべてのファイル修正
+2. **再起動が必須のケース**: .vueファイル（特にscoped style）、.astroファイル、
+   TypeScriptファイル、設定ファイル、Content Collections関連 — つまりすべての修正
 
-3. **なぜ必須なのか**：
+3. **なぜ必須なのか**:
    - Astroの自動リロード（HMR）は**完全には動作しない**
    - Vueコンポーネントのscoped styleは特に反映されにくい
    - Content Collectionsの変更は再起動しないと認識されない
 
-4. **作業フロー**：
-   ```
-   ファイル修正 → 開発サーバー再起動 → ブラウザで確認
-   ```
-   このフローを**必ず守る**こと
-
-5. **再起動を忘れた場合**：
-   - 変更が反映されない
-   - 古いキャッシュが残る
-   - デバッグに無駄な時間がかかる
+4. **作業フロー**: `ファイル修正 → 開発サーバー再起動 → ブラウザで確認`
 
 **⚠️ このルールを忘れると、修正が反映されずユーザーに迷惑をかけます。必ず徹底してください。**
 
@@ -219,25 +331,18 @@ export interface Dice {
 
 ### 基本方針
 
-- **Bootstrap 5.3をCDNで使用**: カスタムビルド不要
+- **Bootstrap 5.3をCDNで使用**: カスタムビルド不要（`BaseLayout.astro` で読み込み）
 - **カスタムCSSは最小限**: Bootstrapクラスのみで実装
 - **厳格な色ルール**: 明るい背景と暗いテキストのみ使用
 
 ### 必ず使用するBootstrapコンポーネントクラス
 
-**レイアウト:**
-- **コンテナ**: `container`, `container-fluid`
-- **グリッド**: `row`, `col`, `col-md-*`
-- **Flexbox**: `d-flex`, `justify-content-*`, `align-items-*`
-- **スペーシング**: `p-*`, `m-*`, `gap-*`, `mb-*`, `mt-*`
+**レイアウト:** `container`, `row`, `col-md-*`, `d-flex`, `justify-content-*`,
+`align-items-*`, `p-*`, `m-*`, `gap-*`
 
-**コンポーネント:**
-- **ボタン**: `btn btn-primary`, `btn btn-secondary`, `btn-lg`
-- **カード**: `card`, `card-body`, `card-title`
-- **ナビゲーション**: `navbar`, `nav`, `nav-link`
-- **フォーム**: `form-label`, `form-control`, `form-select`
-- **バッジ**: `badge`, `bg-primary`, `bg-secondary`, `bg-success`, `bg-info`, `bg-warning`, `bg-danger`
-- **アラート**: `alert`, `alert-info`, `alert-success`, `alert-warning`
+**コンポーネント:** `btn btn-primary` / `btn-secondary` / `btn-lg`, `card` / `card-body` /
+`card-title`, `navbar`, `form-label` / `form-control` / `form-select`,
+`badge` + `bg-*`, `alert` + `alert-info` / `alert-success` / `alert-warning`
 
 ### 厳格な色ルール（絶対遵守）
 
@@ -248,187 +353,131 @@ export interface Dice {
 
 **絶対に使用禁止:**
 - ❌ `bg-dark`, `bg-black`
-- ❌ `text-light`, `text-white` (フッターなど一部例外を除く)
+- ❌ `text-light`, `text-white`（フッターなど一部例外を除く）
 - ❌ その他の暗い色クラス
+
+**認められている例外**（新規に増やさない）:
+- `DiceTray.vue` — カジノ風の緑フェルト背景
+- `DiceAdventureGame.vue` — クトゥルフ神話TRPGの世界観に合わせたダークテーマ
 
 ### カスタムCSS
 
-**カスタムCSSは極力避ける:**
-- Bootstrapクラスで実現できる場合は必ずBootstrapを使用
-- どうしても必要な場合のみVueコンポーネントの `<style scoped>` に記述
-- 例:
-  - サイコロコンポーネント (DiceDisplay.vue, DiceTray.vue) - ドットパターン、フェルト質感
-  - ゲーム固有のビジュアル要素
+Bootstrapクラスで実現できる場合は必ずBootstrapを使う。
+どうしても必要な場合のみVueコンポーネントの `<style scoped>` に記述する
+（サイコロのドットパターン、フェルト質感などのビジュアル要素）。
 
 ### やってはいけないこと（スタイリング）
 
 ❌ BootstrapコンポーネントがあるのにカスタムCSSで実装
 ❌ インラインスタイル（`style="..."`）の使用
-❌ `<style>`タグの使用（Vueの`<style scoped>`以外）
-❌ 暗い色クラス (`bg-dark`, `text-light`等) の使用
+❌ `<style>` タグの使用（Vueの `<style scoped>` 以外）
+❌ 暗い色クラス（`bg-dark`, `text-light` 等）の使用
 ❌ `!important` の使用
+
+---
 
 ## Git管理ワークフロー
 
-### 必ず守るべきルール
+**詳細は [`docs/git-workflow.md`](docs/git-workflow.md) を参照。**
 
-このプロジェクトでは厳格なブランチ管理を実施します。
+### 1. mainブランチへの直接コミット禁止
 
-**詳細は [`docs/git-workflow.md`](docs/git-workflow.md) を参照してください。**
+mainには**絶対に**直接プッシュしない。すべての変更は機能ブランチ + PR を経由する。
 
-#### 1. mainブランチへの直接コミット禁止
-
-- mainブランチには**絶対に**直接プッシュしない
-- すべての変更は機能ブランチを経由する
-
-#### 2. 開発フロー
+### 2. 開発フロー
 
 ```bash
-# 1. 新しいブランチを作成
-git checkout -b feat/feature-name  # または fix/bug-name
-
-# 2. 変更を実装してコミット
+git checkout -b feat/feature-name      # または fix/bug-name
 git add .
 git commit -m "feat: implement feature"
-
-# 3. リモートにプッシュ
 git push origin feat/feature-name
-
-# 4. Pull Request (PR) を作成
 gh pr create --title "タイトル" --body "説明"
-# または GitHub Web UIで作成
-
-# 5. PRをレビュー・マージ（GitHub上で実施）
-
-# 6. マージ後のクリーンアップ
-git checkout main
-git pull origin main
-git branch -d feat/feature-name  # ローカルブランチ削除
+# PRをレビュー・マージ後
+git checkout main && git pull origin main
+git branch -d feat/feature-name
 ```
 
-#### 3. コミットメッセージ規約
+mainへのマージで GitHub Actions（`.github/workflows/deploy.yml`）が走り、
+GitHub Pages へ自動デプロイされる。
 
-Conventional Commits形式を使用：
+### 3. コミットメッセージ規約
 
-- `feat:` - 新機能追加
-- `fix:` - バグ修正
-- `docs:` - ドキュメント変更
-- `refactor:` - リファクタリング
-- `test:` - テスト追加・修正
-- `chore:` - その他の変更
+Conventional Commits形式: `feat:` / `fix:` / `docs:` / `refactor:` / `test:` / `chore:`
 
-**例:**
-```bash
-git commit -m "feat: add dice count selection to QuickMathGame"
-git commit -m "fix: resolve input focus issue in QuickMathGame"
-git commit -m "docs: update CLAUDE.md with Git workflow"
-```
+### 4. ブランチ命名規則
 
-#### 4. ブランチ命名規則
+`feat/機能名` / `fix/バグ名` / `docs/ドキュメント名` / `refactor/対象名`
 
-- `feat/機能名` - 新機能開発
-- `fix/バグ名` - バグ修正
-- `docs/ドキュメント名` - ドキュメント更新
-- `refactor/対象名` - リファクタリング
-
-### GitHub CLI (gh) の使用
-
-PRをコマンドラインから効率的に作成・管理するために GitHub CLI を使用します。
-
-#### インストール（WSL2/Ubuntu）
+### GitHub CLI (gh)
 
 ```bash
-# GitHub公式リポジトリのGPGキーを追加
-curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-
-# リポジトリを追加（アーキテクチャを直接指定）
-echo "deb [arch=amd64 signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list
-
-# インストール
-sudo apt update
-sudo apt install gh -y
-
-# 認証（初回のみ）
-gh auth login
-```
-
-#### よく使うコマンド
-
-```bash
-# PR作成
 gh pr create --title "タイトル" --body "説明"
-
-# PR一覧表示
 gh pr list
-
-# PR詳細表示
 gh pr view [番号]
-
-# PRをマージ
 gh pr merge [番号]
-
-# PRのステータス確認
 gh pr status
 ```
 
-## 実装フェーズ
+未インストールの場合のセットアップ手順は [`docs/git-workflow.md`](docs/git-workflow.md) を参照。
 
-### Phase 1: プロジェクトセットアップ ✓
-- Astroプロジェクト作成
-- Vue統合追加
-- ディレクトリ構造作成
+---
 
-### Phase 2: 基盤ファイルの作成
-- 設定ファイル (astro.config.mjs, tsconfig.json)
-- 型定義 (game.ts)
-- ユーティリティ (dice.ts, LocalStorage.ts)
-- Content Collections設定
+## 実装済みゲーム（7種）
 
-### Phase 3: レイアウトコンポーネント
-- BaseLayout.astro
-- GameLayout.astro
+| ゲーム | slug | コンポーネント | 行数 | 特徴 |
+|---|---|---|---|---|
+| ぞろ目チャレンジ | zorome-challenge | ZoromeGame.vue | 289 | 2〜5個選択、確率表示。最小構成の参考実装 |
+| 50ゲーム | fifty-game | FiftyGame.vue | 326 | 累積スコア、バースト判定 |
+| サイコロ早押し計算 | quick-math | QuickMathGame.vue | 521 | 2〜15個選択、タイム計測、キーボード操作 |
+| ダイスアドベンチャー | dice-adventure | DiceAdventureGame.vue | 1020 | CoC TRPG風D100判定、HP/SAN管理、ダークテーマ |
+| 丁半博打 | cho-han | ChoHanGame.vue | 527 | 資金管理、ベット、最大10ラウンド |
+| サイコロポーカー | dice-poker | DicePokerGame.vue | 739 | Yahtzee風13役、キープ操作、3回振り直し |
+| ブタのしっぽ | pig-game | PigGame.vue | 404 | 1が出たら没収のチキンレース、目標100点 |
 
-### Phase 4: 最初のゲーム実装（ぞろ目チャレンジ）
-- ゲーム情報 (zorome-challenge.md)
-- Vueゲームコンポーネント (ZoromeGame.vue)
-- 動的ゲームページ ([slug].astro)
+### 共通コンポーネント (src/components/common/)
 
-### Phase 5: トップページとゲーム一覧
-- GameCard.astro
-- トップページ (index.astro)
-- ゲーム一覧ページ (games/index.astro)
+**DiceDisplay.vue** - 単体サイコロ表示
+- ドットベースの表示（1=赤丸、2-6=黒丸）
+- サイズ: sm / md / lg
+- 回転アニメーション、キープ表示、クリック可能状態に対応
+- `clickable` 時は `role="button"` + Enter/Space キー操作 + aria-label
 
-### Phase 6: その他ページ
-- aboutページ (about.astro)
+**DiceTray.vue** - サイコロトレイ
+- カジノ風緑フェルト背景、フェルト質感の擬似要素
+- サイコロ個数に応じたグリッド自動調整（1〜15個）
+- 768px以下ではモバイル用に3列固定へ切り替え
 
-### Phase 7: デプロイ設定
-- GitHub Actions設定
-- astro.config.mjs確認
+---
 
-### Phase 8: 動作確認
-- ローカル開発サーバー確認
-- ビルド確認
-- 全機能テスト
+## 既知の課題
 
-## ファイル作成順序
+新規実装時に踏まないよう記載する。手を入れる際はこの項目も更新すること。
 
-1. プロジェクトセットアップ
-2. `src/types/game.ts`
-3. `src/lib/utils/dice.ts`
-4. `src/lib/storage/LocalStorage.ts`
-5. `src/content/config.ts`
-6. `src/layouts/BaseLayout.astro` (Bootstrap CDN統合)
-7. `src/layouts/GameLayout.astro`
-8. `src/content/games/zorome-challenge.md`
-9. `src/components/games/ZoromeGame.vue`
-10. `src/pages/games/[slug].astro`
-11. `src/components/ui/GameCard.astro`
-12. `src/pages/index.astro`
-13. `src/pages/games/index.astro`
-14. `src/pages/about.astro`
-15. `.github/workflows/deploy.yml`
-16. 動作確認
+### 1. .vueファイルは型検査されない
+
+`npm run build` はAstroファイルの型は見るが、**.vue内のTypeScriptは検査しない**。
+実際、存在しないストレージメソッドの呼び出しがビルドを通過し、
+実行時まで発覚しなかった事例がある（PigGame / DicePokerGame の統計保存、2026-08修正済み）。
+
+.vueのロジックを変更したら、ビルドが通ったことを根拠にせず、
+**必ずブラウザで該当ゲームを最後まで動かして確認する**。
+
+### 2. `getStats()` が高得点型ゲームに合わない
+
+`bestScore` が `Math.min` 固定のため、得点が高いほど良いゲームでは使えない。
+得点型は汎用データ系（`saveData` / `getData`）を使うこと。
+
+### 3. ドキュメントの追随
+
+`README.md` のディレクトリ図と `docs/dice-games-design-doc.md` は
+ゲーム3本の頃の記述で止まっている。
+
+### 4. カテゴリー表示の不整合
+
+`config.ts` のenumと `games/index.astro` の表示カテゴリーがずれている
+（「新しいゲームの追加手順」のカテゴリーの注意を参照）。
+
+---
 
 ## 参考ドキュメント
 
@@ -441,82 +490,19 @@ gh pr status
 ## 開発コマンド
 
 ```bash
-# 開発サーバー起動
-npm run dev
-
-# ビルド
-npm run build
-
-# プレビュー
-npm run preview
+npm run dev       # 開発サーバー起動
+npm run build     # ビルド
+npm run preview   # ビルド結果のプレビュー
 ```
 
 ## 現在の状態
 
-- [x] プロジェクトセットアップ完了 (Astro 5.x + Vue 3)
-- [x] 基盤ファイル作成完了
-- [x] レイアウトコンポーネント作成完了 (Bootstrap 5 CDN統合)
-- [x] ぞろ目チャレンジ実装完了
-- [x] 50ゲーム実装完了
-- [x] サイコロ早押し計算実装完了
-- [x] ダイスアドベンチャー実装完了（TRPG系統計ゲーム、ダークテーマ）
-- [x] 丁半博打実装完了（賭博ゲーム、資金管理）
-- [x] トップページ作成完了
-- [x] about/gamesページ作成完了
-- [x] Bootstrap 5への移行完了
-- [x] **リアルサイコロコンポーネント実装完了** (DiceDisplay.vue, DiceTray.vue)
-- [ ] デプロイ設定 (準備中)
-
-## コンポーネント構成
-
-### 共通コンポーネント (src/components/common/)
-
-**DiceDisplay.vue** - 単体サイコロ表示
-- ドットベースの表示（1=赤丸、2-6=黒丸）
-- サイズバリエーション: sm (60px), md (80px), lg (100px)
-- 回転アニメーション対応
-- アクセシビリティ対応 (aria-label)
-
-**DiceTray.vue** - サイコロトレイ
-- カジノ風緑フェルト背景
-- レスポンシブグリッドレイアウト (1-15個対応)
-- モバイル最適化
-- フェルト質感の擬似要素効果
-
-### ゲームコンポーネント (src/components/games/)
-
-**ZoromeGame.vue** - ぞろ目チャレンジゲーム
-- 新サイコロコンポーネント統合済み
-- ゲームロジック、統計記録機能
-
-**FiftyGame.vue** - 50ゲーム
-- 累積スコア管理
-- バースト判定機能
-- 戦略的判断を促すUI
-
-**QuickMathGame.vue** - サイコロ早押し計算
-- サイコロ個数選択機能 (2〜15個)
-- タイム計測、正解率記録
-- キーボードのみで操作可能 (数字キー + Enter)
-- 自動フォーカス管理
-- 個数別統計記録
-
-**DiceAdventureGame.vue** - ダイスアドベンチャー
-- クトゥルフ神話TRPGのダイスシステムを使用した統計型冒険ゲーム
-- D100判定（10面ダイス×2）による成功判定
-- イベント数選択機能 (5～10回)
-- ステータス自動生成（STR、CON、POW、DEX、APP、SIZ、INT、EDU）
-- HP/SAN値管理、ダメージ処理
-- イベント数別統計記録（成功率、平均生存イベント数など）
-- ダークテーマUI（例外的に暗い背景を使用）
-- レスポンシブ2カラムレイアウト（PC）/ 1カラム（スマホ）
-- スマホ対応自動スクロール機能
-
-**ChoHanGame.vue** - 丁半博打
-- 日本の伝統的な賭博ゲーム（サイコロ2個の合計が偶数か奇数か）
-- 資金管理システム（初期1000円、最大10ラウンド）
-- ベット方式：クイックベット（100円、500円、1000円、全額）+ カスタム入力（100円単位）
-- 丁（偶数）/半（奇数）選択
-- ゲーム終了条件：破産、最大ラウンド到達、やめるボタン
-- 統計記録（総ゲーム数、最高所持金、最大ラウンド数、破産回数）
-- Bootstrap標準の明るいテーマ
+- [x] プロジェクトセットアップ（Astro 5.x + Vue 3）
+- [x] 基盤ファイル（型定義・dice.ts・LocalStorageAdapter・Content Collections）
+- [x] レイアウトコンポーネント（Bootstrap 5 CDN統合）
+- [x] 共通サイコロコンポーネント（DiceDisplay.vue / DiceTray.vue）
+- [x] ゲーム7種実装
+- [x] トップページ / ゲーム一覧 / aboutページ
+- [x] GitHub Pagesデプロイ（GitHub Actionsで自動化、公開済み）
+- [x] ストレージの統一（汎用 `saveData` / `getData` 追加、直接localStorage使用の解消）
+- [ ] README・設計書の更新
