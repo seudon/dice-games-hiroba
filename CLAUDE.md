@@ -467,12 +467,7 @@ gh pr status
 `bestScore` が `Math.min` 固定のため、得点が高いほど良いゲームでは使えない。
 得点型は汎用データ系（`saveData` / `getData`）を使うこと。
 
-### 3. ドキュメントの追随
-
-`README.md` のディレクトリ図と `docs/dice-games-design-doc.md` は
-ゲーム3本の頃の記述で止まっている。
-
-### 4. カテゴリー表示の不整合
+### 3. カテゴリー表示の不整合
 
 `config.ts` のenumと `games/index.astro` の表示カテゴリーがずれている
 （「新しいゲームの追加手順」のカテゴリーの注意を参照）。
@@ -505,4 +500,5 @@ npm run preview   # ビルド結果のプレビュー
 - [x] トップページ / ゲーム一覧 / aboutページ
 - [x] GitHub Pagesデプロイ（GitHub Actionsで自動化、公開済み）
 - [x] ストレージの統一（汎用 `saveData` / `getData` 追加、直接localStorage使用の解消）
-- [ ] README・設計書の更新
+- [x] README・設計書の更新
+- [x] GitHub Actionsのバージョン更新（CIのNode.jsは24）
