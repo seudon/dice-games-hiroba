@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import DiceDisplay from '../common/DiceDisplay.vue';
 import DiceTray from '../common/DiceTray.vue';
 import type { Dice } from '../../types/game';
+import { LocalStorageAdapter } from '../../lib/storage/LocalStorage';
 
 // Props
 interface Props {
@@ -46,6 +47,8 @@ const stats = ref<GameStats>({
   maxRounds: 0,
   bankruptcies: 0,
 });
+
+const storage = new LocalStorageAdapter();
 
 // 計算プロパティ
 const diceSum = computed(() => dice.value[0].value + dice.value[1].value);
@@ -216,25 +219,19 @@ function clearStats(): void {
   }
 }
 
-// LocalStorage操作
-function loadStats(): void {
-  try {
-    const key = `dice-games:${props.gameSlug}`;
-    const saved = localStorage.getItem(key);
-    if (saved) {
-      const data = JSON.parse(saved);
-      stats.value = data.stats || stats.value;
-    }
-  } catch (error) {
-    console.error('Failed to load stats:', error);
+// 統計の永続化（LocalStorageAdapter経由）
+async function loadStats(): Promise<void> {
+  const data = await storage.getData<{ stats: GameStats }>(props.gameSlug);
+  if (data?.stats) {
+    stats.value = data.stats;
   }
 }
 
-function saveStats(): void {
+async function saveStats(): Promise<void> {
   try {
-    const key = `dice-games:${props.gameSlug}`;
-    localStorage.setItem(key, JSON.stringify({ stats: stats.value }));
+    await storage.saveData(props.gameSlug, { stats: stats.value });
   } catch (error) {
+    // 統計の保存に失敗してもゲーム進行は妨げない
     console.error('Failed to save stats:', error);
   }
 }

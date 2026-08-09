@@ -185,13 +185,18 @@ async function saveStats() {
     yahtzeeCount: stats.value.yahtzeeCount,
   };
 
-  await storage.saveData(`${props.gameSlug}-stats`, newStats);
+  try {
+    await storage.saveData(`${props.gameSlug}-stats`, newStats);
+  } catch (error) {
+    // 統計の保存に失敗してもゲーム進行は妨げない
+    console.error('Failed to save stats:', error);
+  }
   stats.value = newStats;
 }
 
 // 統計読み込み
 async function loadStatsFromStorage(): Promise<Stats> {
-  const data = await storage.getData(`${props.gameSlug}-stats`);
+  const data = await storage.getData<Stats>(`${props.gameSlug}-stats`);
   return data || {
     totalGames: 0,
     bestScore: null,

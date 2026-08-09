@@ -34,4 +34,19 @@ export interface IStorage {
   getRecords(gameSlug: string, diceCount?: number): Promise<GameRecord[]>;
   getStats(gameSlug: string, diceCount?: number): Promise<GameStats>;
   clearRecords(gameSlug: string): Promise<void>;
+
+  /**
+   * ゲーム固有のデータを任意の形で保存する
+   *
+   * GameRecord / GameStats の形（試行回数が少ないほど良い）に合わないゲーム用。
+   * 得点を競うゲームや、独自の履歴構造を持つゲームはこちらを使う。
+   * keyはゲーム側で決める識別子（例: `${gameSlug}-stats`）。
+   */
+  saveData<T>(key: string, value: T): Promise<void>;
+
+  /** saveDataで保存したデータを取得する。未保存・破損時はnull */
+  getData<T>(key: string): Promise<T | null>;
+
+  /** saveDataで保存したデータを削除する */
+  clearData(key: string): Promise<void>;
 }
