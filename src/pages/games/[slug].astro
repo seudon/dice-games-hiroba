@@ -3,6 +3,7 @@
 import { getCollection } from 'astro:content';
 import GameLayout from '../../layouts/GameLayout.astro';
 import GameHost from '../../components/games/GameHost.vue';
+import { formatPlayers, difficultyColors } from '../../lib/utils/game';
 
 export async function getStaticPaths() {
   const games = await getCollection('games');
@@ -36,14 +37,7 @@ if (!availableGames.includes(game.data.component)) {
   );
 }
 
-// 難易度に応じたバッジカラー
-const difficultyColors: Record<string, string> = {
-  '初級': 'bg-success',
-  '中級': 'bg-info',
-  '上級': 'bg-warning',
-  '超級': 'bg-danger',
-};
-
+const playersLabel = formatPlayers(game.data.players);
 const baseUrl = import.meta.env.BASE_URL;
 ---
 
@@ -51,6 +45,8 @@ const baseUrl = import.meta.env.BASE_URL;
   title={game.data.title}
   description={game.data.description}
 >
+  <!-- 画面表示用。印刷時は下のルールカードだけを出す -->
+  <div class="d-print-none">
   <!--
     ゲーム本体をファーストビューに入れるため、ヘッダーは1画面に収まる高さに抑える。
     詳しいルールや戦略はゲームの下に折りたたんで置く。
@@ -71,7 +67,7 @@ const baseUrl = import.meta.env.BASE_URL;
     <div class="d-flex flex-wrap gap-3 small text-dark">
       <span>
         <span>👥</span>
-        <span>{game.data.players}</span>
+        <span>{playersLabel}</span>
       </span>
       <span>
         <span>⏱️</span>
@@ -105,7 +101,48 @@ const baseUrl = import.meta.env.BASE_URL;
   </div>
 
   <!--
-    詳しいルール・戦略・実際のサイコロでの遊び方。
+    実物のサイコロで遊ぶための情報。
+    ブラウザ版は練習台であり、実際のサイコロで遊ぶのが本来の姿という位置づけ。
+  -->
+  <div class="card border-primary mb-4">
+    <div class="card-header bg-white fw-bold">
+      🎲 実物のサイコロで遊ぶ
+    </div>
+    <div class="card-body">
+      <p class="text-dark">
+        このゲームは実際のサイコロがあれば、みんなで囲んで遊べます。
+        ブラウザ版はルールを覚えるための練習台です。
+      </p>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <div class="fw-bold text-dark mb-2">必要なもの</div>
+          <ul class="text-dark mb-0">
+            {game.data.equipment.map((item: string) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <div class="fw-bold text-dark mb-2">遊ぶ目安</div>
+          <ul class="text-dark mb-0">
+            <li>人数: {playersLabel}</li>
+            <li>時間: {game.data.duration}</li>
+          </ul>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-primary" data-print-rules>
+        ルールカードを印刷する
+      </button>
+      <div class="small text-dark mt-2">
+        必要なもの・ルール・得点記録表を1枚にまとめて印刷します。
+      </div>
+    </div>
+  </div>
+
+  <!--
+    詳しいルール・戦略。
     detailsを使うことでJavaScript不要かつキーボード操作にも対応できる。
   -->
   <details class="mb-4">
@@ -134,4 +171,77 @@ const baseUrl = import.meta.env.BASE_URL;
       ← ゲーム一覧に戻る
     </a>
   </div>
+  </div>
+
+  <!--
+    印刷用ルールカード
+    画面には出さず、印刷したときだけ1枚もので出力する。
+    サイコロを囲んで遊ぶときに手元に置くことを想定している。
+  -->
+  <div class="d-none d-print-block">
+    <h1 class="h3 fw-bold">{game.data.title}</h1>
+    <p class="text-dark">{game.data.description}</p>
+
+    <table class="table table-sm table-borderless w-auto mb-3">
+      <tbody>
+        <tr>
+          <th class="pe-3 text-nowrap">必要なもの</th>
+          <td>{game.data.equipment.join(' / ')}</td>
+        </tr>
+        <tr>
+          <th class="pe-3 text-nowrap">人数</th>
+          <td>{playersLabel}</td>
+        </tr>
+        <tr>
+          <th class="pe-3 text-nowrap">遊ぶ時間</th>
+          <td>{game.data.duration}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 class="h5 fw-bold">ルール</h2>
+    <p class="text-dark">{game.data.quickRule}</p>
+
+    <h2 class="h5 fw-bold">得点記録表</h2>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th class="text-center">回</th>
+          <th>プレイヤー1</th>
+          <th>プレイヤー2</th>
+          <th>プレイヤー3</th>
+          <th>プレイヤー4</th>
+        </tr>
+      </thead>
+      <tbody>
+        {Array.from({ length: 12 }, (_, i) => (
+          <tr>
+            <td class="text-center">{i + 1}</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+          </tr>
+        ))}
+        <tr>
+          <th class="text-center">合計</th>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="small text-dark">
+      サイコロゲーム広場 — {Astro.site?.href ?? ''}dice-games-hiroba/games/{game.slug}/
+    </p>
+  </div>
 </GameLayout>
+
+<script>
+  // 「ルールカードを印刷する」ボタン
+  document.querySelectorAll('[data-print-rules]').forEach(button => {
+    button.addEventListener('click', () => window.print());
+  });
+</script>

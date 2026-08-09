@@ -3,7 +3,11 @@ title: ぞろ目チャレンジ
 component: ZoromeGame.vue
 description: サイコロでぞろ目を出すまでの回数を競うシンプルなゲーム
 quickRule: サイコロを同時に振り、全部同じ目（ぞろ目）が出たら成功です。何回目で出せたかを記録します。サイコロの個数が増えるほど難しくなります。
-players: 1人〜
+players:
+  min: 1
+equipment:
+  - 6面サイコロ 2〜5個
+  - 紙とペン（回数の記録用）
 duration: 5-10分
 difficulty: 初級
 diceCount: 2
@@ -16,6 +20,7 @@ config:
   maxDice: 5
   defaultDice: 2
 ---
+
 
 ## ゲーム概要
 

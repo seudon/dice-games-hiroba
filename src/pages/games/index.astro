@@ -6,36 +6,44 @@ import GameCard from '../../components/ui/GameCard.astro';
 
 const allGames = await getCollection('games');
 
-// カテゴリー別にグルーピング
-const categories = ['運ゲー', '戦略ゲー', '計算ゲー', 'パーティーゲー'] as const;
-const gamesByCategory = categories.map(cat => ({
-  name: cat,
-  games: allGames.filter(g => g.data.category.includes(cat)),
-})).filter(c => c.games.length > 0);
-
-// 難易度別にソート
-const gamesByDifficulty = allGames.sort((a, b) => {
-  const difficultyOrder = { '初級': 1, '中級': 2, '上級': 3, '超級': 4 };
-  return difficultyOrder[a.data.difficulty] - difficultyOrder[b.data.difficulty];
-});
+/**
+ * 必要なサイコロの数でグルーピングする
+ *
+ * 実際のサイコロで遊ぶとき、手元に何個あるかが最初の制約になるため、
+ * この並びを一覧の主軸にしている。
+ * 各ゲームはちょうど1回だけ表示される(以前はカテゴリー別と全件で二重に出ていた)。
+ */
+const byDiceCount = [...new Set(allGames.map(g => g.data.diceCount))]
+  .sort((a, b) => a - b)
+  .map(count => ({
+    count,
+    games: allGames
+      .filter(g => g.data.diceCount === count)
+      .sort((a, b) => {
+        const order = { '初級': 1, '中級': 2, '上級': 3, '超級': 4 };
+        return order[a.data.difficulty] - order[b.data.difficulty];
+      }),
+  }));
 ---
 
 <BaseLayout title="ゲーム一覧" description="サイコロゲームの一覧ページ">
   <!-- ページヘッダー -->
-  <div class="card mb-5">
+  <div class="card mb-4">
     <div class="card-body text-center">
-      <h1 class="display-4 fw-bold mb-3">🎲 ゲーム一覧</h1>
-      <p class="lead text-dark">
-        全{allGames.length}種類のサイコロゲームを掲載しています
+      <h1 class="h2 fw-bold mb-2">🎲 ゲーム一覧</h1>
+      <p class="text-dark mb-0">
+        全{allGames.length}種類のサイコロゲームを掲載しています。
+        手元にあるサイコロの数から選べます。
       </p>
     </div>
   </div>
 
-  <!-- カテゴリー別表示 -->
-  {gamesByCategory.map(({ name, games }) => (
+  <!-- サイコロの数で選ぶ -->
+  {byDiceCount.map(({ count, games }) => (
     <div class="mb-5">
-      <h2 class="h3 fw-bold mb-4 pb-2 border-start border-primary border-4 ps-3">
-        {name}
+      <h2 class="h4 fw-bold mb-3 pb-2 border-start border-primary border-4 ps-3">
+        サイコロ{count}個で遊べる
+        <span class="badge bg-secondary align-middle">{games.length}</span>
       </h2>
       <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         {games.map(game => (
@@ -46,16 +54,4 @@ const gamesByDifficulty = allGames.sort((a, b) => {
       </div>
     </div>
   ))}
-
-  <!-- すべてのゲーム(難易度順) -->
-  <div class="mt-5">
-    <h2 class="h3 fw-bold text-center mb-4">すべてのゲーム(難易度順)</h2>
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-      {gamesByDifficulty.map(game => (
-        <div class="col">
-          <GameCard game={game} />
-        </div>
-      ))}
-    </div>
-  </div>
 </BaseLayout>

@@ -3,7 +3,12 @@ title: 丁半博打
 description: サイコロ2個の合計が偶数（丁）か奇数（半）かを当てる日本の伝統的な賭博ゲーム
 quickRule: サイコロ2個の合計が偶数（丁）か奇数（半）かに賭けます。当たれば掛け金が倍になり、外せば没収です。所持金が尽きる前にどこまで増やせるかを競います。
 difficulty: 中級
-players: 1人
+players:
+  min: 2
+equipment:
+  - 6面サイコロ 2個
+  - お椀とお盆（サイコロを振る器）
+  - チップや小銭（賭け金の代わり）
 duration: 5-15分
 diceCount: 2
 category:
@@ -12,6 +17,7 @@ featured: false
 component: ChoHanGame.vue
 publishedAt: 2025-11-01
 ---
+
 
 ## ゲーム概要
 
