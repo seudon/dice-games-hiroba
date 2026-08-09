@@ -42,6 +42,7 @@
 │   │   │   ├── DiceDisplay.vue      # サイコロ単体表示
 │   │   │   └── DiceTray.vue         # サイコロトレイ
 │   │   ├── games/               # ゲームコンポーネント
+│   │   │   ├── GameHost.vue         # ゲームの動的解決
 │   │   │   ├── ZoromeGame.vue
 │   │   │   ├── FiftyGame.vue
 │   │   │   ├── QuickMathGame.vue
@@ -150,10 +151,9 @@
 
 ### ゲームを追加するには
 
-1ゲームは **Markdown 1枚 + Vueコンポーネント1枚** の組で構成し、
-`src/pages/games/[slug].astro` に登録して初めて表示されます。
-この3ファイルすべてが必要です。手順は [`CLAUDE.md`](CLAUDE.md) の
-「新しいゲームの追加手順」に記載しています。
+1ゲームは **Markdown 1枚 + Vueコンポーネント1枚** の組で構成します。
+この2ファイルを置くだけで表示され、ページ側への登録作業はありません。
+手順は [`CLAUDE.md`](CLAUDE.md) の「新しいゲームの追加手順」に記載しています。
 
 ## 🔀 Git運用ルール
 
