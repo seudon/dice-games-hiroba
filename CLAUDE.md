@@ -39,10 +39,16 @@ src/pages/games/[slug].astro     全ゲームページを静的生成
 src/components/games/{Name}.vue  client:visible でハイドレート
 ```
 
-**重要な特性**: `[slug].astro` はコンポーネント名の文字列マッチで分岐する。
-Astroは動的import経路でのコンポーネント解決をしないため、**ゲームを追加するたびに
-`[slug].astro` へ import と分岐ブロックを手で1つずつ足す必要がある**。
-これを忘れるとページは生成されるがゲーム本体が空欄になる（エラーは出ない）。
+**ゲームの解決は自動**。`[slug].astro` は `GameHost.vue` だけをマウントし、
+実際のゲームは `GameHost` が `import.meta.glob` で動的に読み込む。
+**ゲームを追加しても `[slug].astro` を編集する必要はない。**
+
+Astroの `client:` ディレクティブは静的にimportされたコンポーネントしか受け付けないため
+（動的に解決すると `NoMatchingImport` になる）、選択の責任をVue側に置いている。
+`GameHost` は `client:only="vue"` でマウントする。
+
+component名が解決できない場合は `[slug].astro` がビルド時に例外を投げる。
+綴り間違いや置き忘れはビルドで止まるので、無言で空欄になることはない。
 
 ### ゲームページの構成（順序を崩さない）
 
@@ -81,7 +87,7 @@ src/
 
 ## 新しいゲームの追加手順
 
-以下の3ファイルすべてを触る。1つでも欠けると動かない。
+作るのは次の2ファイルだけ。既存ファイルの編集は不要。
 
 ### 1. `src/content/games/{slug}.md` を作成
 
@@ -121,21 +127,17 @@ TRPG・統計・ロールプレイを指定すると、一覧の「すべての�
 ### 2. `src/components/games/NewGame.vue` を作成
 
 - propsは `gameSlug: string` を必ず受け取る（記録保存キーに使う）
-- `config` に書いた値は同名propsとして届く
+- `config` に書いた値は同名propsとして届く（`GameHost` が `v-bind` で展開する）
 - サイコロ表示は必ず `DiceTray` を使う（後述の絶対遵守ルール）
 - 既存ゲームを土台にする。最小構成は `ZoromeGame.vue`（289行）が読みやすい
 
-### 3. `src/pages/games/[slug].astro` に登録
+### 登録作業は不要
 
-```astro
-import NewGame from '../../components/games/NewGame.vue';
-...
-{game.data.component === 'NewGame.vue' && (
-  <NewGame client:visible gameSlug={game.slug} {...game.data.config} />
-)}
-```
+`GameHost.vue` が `src/components/games/` を走査して解決するため、
+`[slug].astro` への追記はいらない。`.vue` を置いてmdの `component` に
+ファイル名を書けば表示される。
 
-`{...game.data.config}` は config を使うゲームのみ付ける。
+綴りが合わないとビルドが失敗し、利用可能なコンポーネント名が一覧表示される。
 
 ---
 

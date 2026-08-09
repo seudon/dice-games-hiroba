@@ -63,12 +63,29 @@ src/components/games/{Name}.vue  client:visible でハイドレート
 折りたたみに `<details>` を使っているのは、JavaScript不要で
 キーボード操作にも対応でき、中身がHTMLに存在するため検索エンジンにも読まれるため。
 
-### コンポーネント解決の制約
+### コンポーネントの動的解決
 
-`[slug].astro` は `game.data.component` の**文字列マッチで分岐**している。
-Astroが動的なimportパスからコンポーネントを解決できないためで、
-ゲームを追加するたびにimportと分岐ブロックを手で追加する必要がある。
-登録を忘れるとページは生成されるがゲーム本体が空欄になり、エラーも出ない。
+ゲームは「どんどん追加していく」ことを前提とするため、
+ページ側にゲームを1本ずつ登録する作業を残さない設計にしている。
+
+当初は `[slug].astro` で `game.data.component` を文字列マッチし、
+importと分岐を手で並べていた。ゲームが増えるほど編集箇所が増え、
+登録を忘れるとページは生成されるのにゲーム欄だけが無言で空になる問題があった。
+
+現在は `GameHost.vue` が `import.meta.glob` で
+`src/components/games/` を走査し、component名から実際のゲームを解決する。
+`.vue` を置いてmdに名前を書けば表示されるため、ページ側の編集は不要。
+
+**なぜVue側で解決するのか**: Astroの `client:` ディレクティブは
+静的にimportされたコンポーネントしか受け付けず、動的に解決したものを渡すと
+`NoMatchingImport` エラーになる。そのためページ側は `GameHost` だけを
+`client:only="vue"` でマウントし、選択の責任をVue側に移している。
+
+動的importのため、実際に読み込まれるチャンクは選択された1つだけで、
+ゲームが増えてもページの転送量は増えない。
+
+component名が解決できない場合は `[slug].astro` がビルド時に例外を投げ、
+利用可能なコンポーネント名を一覧表示する。
 
 ---
 
@@ -93,6 +110,7 @@ dice-games-hiroba/
 │   │   │   ├── DiceDisplay.vue         # サイコロ単体表示
 │   │   │   └── DiceTray.vue            # サイコロトレイ
 │   │   ├── games/                       # ゲームコンポーネント 7件
+│   │   │   ├── GameHost.vue            # component名からゲームを動的解決
 │   │   │   ├── ZoromeGame.vue          # ぞろ目チャレンジ
 │   │   │   ├── FiftyGame.vue           # 50ゲーム
 │   │   │   ├── QuickMathGame.vue       # サイコロ早押し計算
@@ -355,13 +373,15 @@ npm run preview  # ビルドをプレビュー
 
 ### 新しいゲーム追加手順
 
-以下の3ファイルすべてを触る。1つでも欠けると動作しない。
+作るのは2ファイルだけで、既存ファイルの編集は不要。
 
-1. `src/content/games/game-name.md` を作成（frontmatter + ルール説明）
+1. `src/content/games/game-name.md` を作成（frontmatter + 詳しいルール）
 2. `src/components/games/GameName.vue` を作成
-3. **`src/pages/games/[slug].astro` にimportと分岐を追加**
-4. ローカルで確認: `npm run dev`
-5. ビルド確認: `npm run build && npm run preview`
+3. ローカルで確認: `npm run dev`
+4. ビルド確認: `npm run build && npm run preview`
+
+mdの `component` に書いたファイル名を `GameHost.vue` が解決するため、
+ページ側への登録作業はない。名前が合わなければビルドが失敗する。
 
 frontmatterの各項目の書き方は [`CLAUDE.md`](../CLAUDE.md) の
 「新しいゲームの追加手順」を参照。
