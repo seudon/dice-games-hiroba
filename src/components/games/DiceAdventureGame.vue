@@ -205,12 +205,15 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { LocalStorageAdapter } from '../../lib/storage/LocalStorage';
 
 interface Props {
   gameSlug: string;
 }
 
 const props = defineProps<Props>();
+
+const storage = new LocalStorageAdapter();
 
 // Ref for scrolling
 const newAdventurerButton = ref<HTMLElement | null>(null);
@@ -533,28 +536,25 @@ function finishAdventurer(success: boolean, deathCause: string | null = null) {
   }
 }
 
-// LocalStorageから履歴を読み込み
-function loadHistory() {
-  try {
-    const key = `dice-games:${props.gameSlug}_events_${maxEvents.value}`;
-    const saved = localStorage.getItem(key);
-    if (saved) {
-      const data = JSON.parse(saved);
-      if (data && data.history) {
-        history.value = data.history;
-      }
-    }
-  } catch (error) {
-    console.error('Failed to load history:', error);
+// 履歴はイベント数ごとに別キーで保持する
+function getHistoryKey(): string {
+  return `${props.gameSlug}_events_${maxEvents.value}`;
+}
+
+// 履歴を読み込み（LocalStorageAdapter経由）
+async function loadHistory(): Promise<void> {
+  const data = await storage.getData<{ history: any[] }>(getHistoryKey());
+  if (data?.history) {
+    history.value = data.history;
   }
 }
 
-// LocalStorageに履歴を保存
-function saveHistory() {
+// 履歴を保存（LocalStorageAdapter経由）
+async function saveHistory(): Promise<void> {
   try {
-    const key = `dice-games:${props.gameSlug}_events_${maxEvents.value}`;
-    localStorage.setItem(key, JSON.stringify({ history: history.value }));
+    await storage.saveData(getHistoryKey(), { history: history.value });
   } catch (error) {
+    // 履歴の保存に失敗しても冒険の進行は妨げない
     console.error('Failed to save history:', error);
   }
 }

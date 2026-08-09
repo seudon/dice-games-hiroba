@@ -77,4 +77,43 @@ export class LocalStorageAdapter implements IStorage {
       throw new Error('記録の削除に失敗しました');
     }
   }
+
+  /**
+   * ゲーム固有のデータを任意の形で保存する
+   *
+   * 保存先キーは `dice-games:{key}` となる。
+   * GameRecordの形に収まらないゲーム（得点型、独自の履歴構造）はこちらを使う。
+   */
+  async saveData<T>(key: string, value: T): Promise<void> {
+    try {
+      localStorage.setItem(this.getStorageKey(key), JSON.stringify(value));
+    } catch (error) {
+      console.error('Failed to save data:', error);
+      throw new Error('データの保存に失敗しました');
+    }
+  }
+
+  /** saveDataで保存したデータを取得する。未保存・JSON破損時はnullを返す */
+  async getData<T>(key: string): Promise<T | null> {
+    try {
+      const data = localStorage.getItem(this.getStorageKey(key));
+
+      if (!data) return null;
+
+      return JSON.parse(data) as T;
+    } catch (error) {
+      console.error('Failed to get data:', error);
+      return null;
+    }
+  }
+
+  /** saveDataで保存したデータを削除する */
+  async clearData(key: string): Promise<void> {
+    try {
+      localStorage.removeItem(this.getStorageKey(key));
+    } catch (error) {
+      console.error('Failed to clear data:', error);
+      throw new Error('データの削除に失敗しました');
+    }
+  }
 }
