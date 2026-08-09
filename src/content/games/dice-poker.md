@@ -2,6 +2,7 @@
 title: サイコロポーカー
 component: DicePokerGame.vue
 description: 5個のサイコロで役を作って高得点を目指す戦略的ゲーム
+quickRule: 5個のサイコロで役を作ります。1ラウンドにつき3回まで振り直せます。全13ラウンドで各役を1回ずつ使い、合計得点を伸ばします。
 players: 1人
 duration: 5-10分
 difficulty: 中級
@@ -15,8 +16,6 @@ config:
   maxRerolls: 3
   diceCount: 5
 ---
-
-# サイコロポーカー
 
 ## ゲーム概要
 

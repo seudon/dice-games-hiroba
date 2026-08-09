@@ -36,106 +36,121 @@ const baseUrl = import.meta.env.BASE_URL;
   title={game.data.title}
   description={game.data.description}
 >
-  <!-- ゲームヘッダー -->
-  <div class="mb-4 pb-4 border-bottom">
-    <h1 class="display-4 fw-bold mb-3">{game.data.title}</h1>
-    <p class="lead text-dark mb-3">{game.data.description}</p>
+  <!--
+    ゲーム本体をファーストビューに入れるため、ヘッダーは1画面に収まる高さに抑える。
+    詳しいルールや戦略はゲームの下に折りたたんで置く。
+  -->
+  <div class="mb-3">
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+      <h1 class="h2 fw-bold mb-0">{game.data.title}</h1>
+      <span class={`badge ${difficultyColors[game.data.difficulty]}`}>
+        {game.data.difficulty}
+      </span>
+      {game.data.category.map((cat: string) => (
+        <span class="badge bg-secondary">{cat}</span>
+      ))}
+    </div>
 
-    <!-- メタ情報 -->
-    <div class="d-flex flex-wrap gap-2 mb-3">
-      <span class="badge bg-light text-dark">
+    <p class="text-dark mb-2">{game.data.description}</p>
+
+    <div class="d-flex flex-wrap gap-3 small text-dark">
+      <span>
         <span>👥</span>
         <span>{game.data.players}</span>
       </span>
-      <span class="badge bg-light text-dark">
+      <span>
         <span>⏱️</span>
         <span>{game.data.duration}</span>
       </span>
-      <span class="badge bg-light text-dark">
-        <span>🎯</span>
-        <span>{game.data.difficulty}</span>
-      </span>
-      <span class="badge bg-light text-dark">
+      <span>
         <span>🎲</span>
         <span>サイコロ{game.data.diceCount}個</span>
       </span>
     </div>
-
-    <!-- タグ -->
-    <div class="d-flex flex-wrap gap-2">
-      {game.data.category.map((cat: string) => (
-        <span class={`badge ${difficultyColors[game.data.difficulty]}`}>
-          {cat}
-        </span>
-      ))}
-      {game.data.tags?.map((tag: string) => (
-        <span class="badge bg-secondary">{tag}</span>
-      ))}
-    </div>
   </div>
 
-  <!-- ルール説明(静的コンテンツ) -->
-  <div class="mb-4 text-dark">
-    <Content />
+  <!-- クイックルール(これだけ読めば遊べる要点) -->
+  <div class="alert alert-info py-2 mb-3">
+    <span class="badge bg-primary me-2">ルール</span>
+    <span>{game.data.quickRule}</span>
   </div>
-
-  <hr>
 
   <!-- ゲーム本体(インタラクティブ) -->
-  <div class="mb-4">
-    <h2 class="h3 fw-bold text-center mb-4">🎮 ブラウザで遊ぶ</h2>
-    <div class="bg-light rounded p-4">
-      {game.data.component === 'ZoromeGame.vue' && (
-        <ZoromeGame
-          client:visible
-          gameSlug={game.slug}
-          {...game.data.config}
-        />
-      )}
-      {game.data.component === 'FiftyGame.vue' && (
-        <FiftyGame
-          client:visible
-          gameSlug={game.slug}
-        />
-      )}
-      {game.data.component === 'QuickMathGame.vue' && (
-        <QuickMathGame
-          client:visible
-          gameSlug={game.slug}
-        />
-      )}
-      {game.data.component === 'DiceAdventureGame.vue' && (
-        <DiceAdventureGame
-          client:visible
-          gameSlug={game.slug}
-        />
-      )}
-      {game.data.component === 'ChoHanGame.vue' && (
-        <ChoHanGame
-          client:visible
-          gameSlug={game.slug}
-        />
-      )}
-      {game.data.component === 'DicePokerGame.vue' && (
-        <DicePokerGame
-          client:visible
-          gameSlug={game.slug}
-          {...game.data.config}
-        />
-      )}
-      {game.data.component === 'PigGame.vue' && (
-        <PigGame
-          client:visible
-          gameSlug={game.slug}
-          {...game.data.config}
-        />
-      )}
-    </div>
+  <div class="bg-light rounded p-3 p-md-4 mb-4">
+    {game.data.component === 'ZoromeGame.vue' && (
+      <ZoromeGame
+        client:visible
+        gameSlug={game.slug}
+        {...game.data.config}
+      />
+    )}
+    {game.data.component === 'FiftyGame.vue' && (
+      <FiftyGame
+        client:visible
+        gameSlug={game.slug}
+      />
+    )}
+    {game.data.component === 'QuickMathGame.vue' && (
+      <QuickMathGame
+        client:visible
+        gameSlug={game.slug}
+      />
+    )}
+    {game.data.component === 'DiceAdventureGame.vue' && (
+      <DiceAdventureGame
+        client:visible
+        gameSlug={game.slug}
+      />
+    )}
+    {game.data.component === 'ChoHanGame.vue' && (
+      <ChoHanGame
+        client:visible
+        gameSlug={game.slug}
+      />
+    )}
+    {game.data.component === 'DicePokerGame.vue' && (
+      <DicePokerGame
+        client:visible
+        gameSlug={game.slug}
+        {...game.data.config}
+      />
+    )}
+    {game.data.component === 'PigGame.vue' && (
+      <PigGame
+        client:visible
+        gameSlug={game.slug}
+        {...game.data.config}
+      />
+    )}
   </div>
+
+  <!--
+    詳しいルール・戦略・実際のサイコロでの遊び方。
+    detailsを使うことでJavaScript不要かつキーボード操作にも対応できる。
+  -->
+  <details class="mb-4">
+    <summary class="btn btn-secondary w-100 text-start">
+      詳しいルールと戦略を読む
+    </summary>
+
+    <div class="card border-top-0 rounded-top-0">
+      <div class="card-body text-dark">
+        <Content />
+
+        {game.data.tags && game.data.tags.length > 0 && (
+          <div class="d-flex flex-wrap gap-2 mt-4 pt-3 border-top">
+            {game.data.tags.map((tag: string) => (
+              <span class="badge bg-secondary">{tag}</span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  </details>
 
   <!-- ナビゲーション -->
   <div class="text-center pt-3 border-top">
-    <a href={`${baseUrl}/games/`} class="btn btn-primary btn-lg">
+    <a href={`${baseUrl}/games/`} class="btn btn-primary">
       ← ゲーム一覧に戻る
     </a>
   </div>

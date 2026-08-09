@@ -7,6 +7,8 @@ const gamesCollection = defineCollection({
     title: z.string(),
     component: z.string(),                    // 例: 'ZoromeGame.vue'
     description: z.string(),
+    // ゲームの直前に表示する要点。これだけ読めば遊べる長さ（2〜3文）に収める
+    quickRule: z.string(),
     players: z.string(),                      // 例: '1人〜'
     duration: z.string(),                     // 例: '5-10分'
     difficulty: z.enum(['初級', '中級', '上級', '超級']),
