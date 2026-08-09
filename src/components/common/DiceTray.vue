@@ -170,12 +170,23 @@ function handleDiceClick(index: number) {
 
 /* レスポンシブ */
 @media (max-width: 768px) {
+  /* スマホではサイコロと操作ボタンを1画面に収めたいので余白を詰める */
   .dice-tray {
-    padding: 30px 20px;
+    padding: 16px 12px;
+    border-radius: 14px;
+  }
+
+  .dice-tray::after {
+    top: 6px;
+    left: 6px;
+    right: 6px;
+    bottom: 6px;
+    border-radius: 10px;
   }
 
   .dice-area {
-    gap: 15px;
+    gap: 12px;
+    min-height: 0;
   }
 
   /* モバイルでは3列まで */
